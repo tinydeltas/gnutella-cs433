@@ -4,7 +4,9 @@ This is the final project for Rebecca Nickerson & Lining Wang for **CPSC433** at
 
 **Original assignment spec here:** http://www.cs.iit.edu/~iraicu/teaching/CS550-S11/pa2.pdf
 
-**Report here:** [link]
+**Report here:** https://www.overleaf.com/4851600fbpfzx (edit link) 
+
+https://www.overleaf.com/read/wpfgjhmsyxpy (read only link) 
 
 
 # Installation & Basics
@@ -19,20 +21,22 @@ VM's set up using Microsoft Azure.
 
 `password: cs433()`
 
-`gnutella-1.eastus.cloudapp.azure.com`
+`gnutella-1.eastus.cloudapp.azure.com` ( 23.96.28.92 )
 
-`gnutella-2.eastus.cloudapp.azure.com`
+`gnutella-2.eastus.cloudapp.azure.com` ( 23.96.29.108 ) 
 
-`gnutella-3.centralus.cloudapp.azure.com`
+`gnutella-3.centralus.cloudapp.azure.com` ( 13.89.42.223 ) 
 
-`gnutella-4.centralus.cloudapp.azure.com`
+`gnutella-4.centralus.cloudapp.azure.com` ( 13.89.42.91 ) 
 
-`gnutella-5.brazilsouth.cloudapp.azure.com`
+`gnutella-5.brazilsouth.cloudapp.azure.com` ( 191.232.195.130 )
 
-`gnutella-6.brazilsouth.cloudapp.azure.com`
+`gnutella-6.brazilsouth.cloudapp.azure.com` ( 191.232.197.75 )
 
-`gnutella-7.eastasia.cloudapp.azure.com`
+`gnutella-7.eastasia.cloudapp.azure.com` ( 23.99.120.143 ) 
 
-`gnutella-8.eastasia.cloudapp.azure.com`
+`gnutella-8.eastasia.cloudapp.azure.com` ( 23.99.123.87 ) 
 
 # FAQ
+
+Y u do dis
