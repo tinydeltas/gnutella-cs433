@@ -8,7 +8,6 @@ This is the final project for Rebecca Nickerson & Lining Wang for **CPSC433** at
 
 https://www.overleaf.com/read/wpfgjhmsyxpy (read only link) 
 
-
 # Installation & Basics
 
 `git clone https://github.com/linii/gnutella-cs433`
