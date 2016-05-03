@@ -70,7 +70,8 @@ public class Peer {
     }
 
     public boolean setUpConfiguration(String configFile){
-        try(BufferedReader br = new BufferedReader(new FileReader(configFile))){
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(configFile));
             ArrayList<InetAddress> arrlist = new ArrayList<InetAddress>();
             String line;
             boolean current = false;
