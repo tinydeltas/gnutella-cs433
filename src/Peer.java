@@ -5,6 +5,7 @@ import java.net.InetAddress;
 
 public class Peer {
     private int id;
+    private String dirRoot;
     private QueryArray arr;
     private InetAddress[] neighbors; // list of neighbors
 
@@ -26,6 +27,7 @@ public class Peer {
         
 
         System.out.println(id);
+        System.out.println(dirRoot);
         for(InetAddress ia : neighbors){
             System.out.println(ia);
         }
@@ -85,6 +87,11 @@ public class Peer {
 
                 if(words[0].equals("</Peer>")){
                     current = false;
+                    continue;
+                }
+
+                if(words[0].equals("ROOT:")){
+                    dirRoot = words[1];
                     continue;
                 }
 
