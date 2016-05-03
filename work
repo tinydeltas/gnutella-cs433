@@ -1,6 +1,8 @@
 Configuration
-    Config file parsing (group membership -- what peers each peer has as its neighbors)
+    Neighbors config parsing (group membership -- what peers each peer has as its neighbors)
         List of IP addresses + peer ID's
+    File config parsing
+        List of files peer wants
     Command line parsing (config file,
     Debugging interface (copied from previous assignments)
     Testing:
@@ -17,22 +19,22 @@ Documentation
 -----------------
 
 Classes
-    Query message  (message ID, TTL, file name)
-    Hitquery message  (message ID, TTL, file name, peer IP, port number)
     Peer
     GnutellaPacket (multiplexing and demultiplexing for query/hitquery messages)
-
+        changes structure -> byte[]
+        constructs Query message  (message ID, TTL, file name)
+        constructs Hitquery message  (message ID, TTL, file name, peer IP, port number)
+    AssociativeArray - [message ID, upstream peer ID]
+        flushing policy
 
 Peer state
     int peer ID
     DATA STRUCTURE Message IDs + upstream peers
-        [message ID, upstream peer ID]
-        flushing policy
-    DATA STRUCTURE local storage
+    DATA STRUCTURE local storage / cache
         can be just files stored on machine
     IMMUTABLE DATA STRUCTURE list of neighbors
 
-Query handling
+Query handling - query()
     checking that the message hasn't already been seen
     updating the associative array
     searching local storage
@@ -40,23 +42,26 @@ Query handling
     decrement TTL, (increment hops field)
     if TTL is not 0 & not seen already, forwarding to neighbors using TCP socket connection
 
-Hitquery handling
+Hitquery handling - hitquery()
     searching the associative array
     sends hitquery message upstream
 
-File request handling
-    specify the port - 7777?
+File request handling - filerequest()
+    specify the port
     listen for connections at that port
     HTTP protocol - file index, file size, file name
 
 Multithreading
-    upon reception of TCP connection request, accepting TCP connections from upstream for files peer has
-    upon reception of hitquery message, propagating responses back to original sender
-    upon reception of query message, sending to neighbors as described above
+    HTTP port - 5760
+        upon reception of TCP connection request, accepting TCP connections from upstream for files peer has
+    Queries port - 7777
+        upon reception of hitquery message, propagating responses back to original sender
+        upon reception of query message, sending to neighbors as described above
 
 -----------------
 
 Extensions
 
 Push
+Cache
 
