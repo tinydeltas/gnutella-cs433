@@ -1,13 +1,13 @@
 Configuration
-    Neighbors config parsing (group membership -- what peers each peer has as its neighbors)
+    X Neighbors config parsing (group membership -- what peers each peer has as its neighbors)
         List of IP addresses + peer ID's
     File config parsing
         List of files peer wants
-    Command line parsing (config file,
-    Debugging interface (copied from previous assignments)
+    X Command line parsing (config file,
+    X Debugging interface (copied from previous assignments)
     Testing:
         Varying topologies
-        Text files of various sizes
+        X Text files of various sizes
         Printing of actions (on query, on hitquery, on file request, etc)
 
 Documentation
