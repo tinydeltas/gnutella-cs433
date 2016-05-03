@@ -1,3 +1,4 @@
 .idea/
 gnutella-433.iml
 src/notes
+src/*.class

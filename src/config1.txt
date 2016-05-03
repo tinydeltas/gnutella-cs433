@@ -1,0 +1,12 @@
+<Peer 0>
+	<Neighbors>
+		gnutella-1.eastus.cloudapp.azure.com
+		gnutella-2.eastus.cloudapp.azure.com
+	</Neighbors>
+</Peer>
+
+<Peer 1>
+	<Neighbors>
+		gnutella-1.eastus.cloudapp.azure.com
+	</Neighbors>
+</Peer>
