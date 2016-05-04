@@ -3,9 +3,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 
 /**
- * <pre>   
+ * <pre>
  * Packet defines the Fishnet packet headers and some constants.
- * </pre>   
+ * </pre>
  */
 public class GnutellaPacket {
 
@@ -22,7 +22,7 @@ public class GnutellaPacket {
 
     public static final int QUERY = 0;
     public static final int HITQUERY = 1;
-    public static final int FILE = 2;
+    public static final int OBTAIN = 2;
     public static final int PUSH = 3;
 
     public static final int DEF_TTL = 3;
@@ -51,7 +51,7 @@ public class GnutellaPacket {
      * @return A string representation of the packet.
      */
     public String toString() {
-	return new String("GnutellaPacket: " + this.messageID + "; " + this.payloadDescriptor + "; ttl: " + this.ttl + " hops: " + this.hops + 
+	return new String("GnutellaPacket: " + this.messageID + "; " + this.payloadDescriptor + "; ttl: " + this.ttl + " hops: " + this.hops +
 			 " contents: " + Utility.byteArrayToString(this.payload));
     }
 
@@ -61,7 +61,7 @@ public class GnutellaPacket {
     public int getMessageID() {
 	return this.messageID;
     }
-    
+
     /**
      * @return The address of the src node
      */
@@ -85,7 +85,7 @@ public class GnutellaPacket {
     public void setTTL(int ttl) {
 	   this.ttl = ttl;
     }
-    
+
     /**
      * @return The sequence number of this packet
      */
@@ -113,8 +113,8 @@ public class GnutellaPacket {
      *        payload: <= MAX_PAYLOAD_SIZE bytes
      * @return A byte[] for transporting over the wire. Null if failed to pack for some reason
      */
-    public byte[] pack() {	
-	
+    public byte[] pack() {
+
     	ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     	byteStream.write(this.messageID);
     	byteStream.write(this.payloadDescriptor);
@@ -127,7 +127,7 @@ public class GnutellaPacket {
     	for(int i = 0; i < paddingLength; i++) {
     	    byteStream.write(0);
     	}*/
-    	
+
     	byteStream.write(this.payload, 0, this.payload.length);
 
     	return byteStream.toByteArray();
@@ -140,15 +140,15 @@ public class GnutellaPacket {
      * @return Packet object created or null if the byte[] representation was corrupted
      */
     public static GnutellaPacket unpack(byte[] packedPacket){
-	
+
     	ByteArrayInputStream byteStream = new ByteArrayInputStream(packedPacket);
-    	
+
     	int messageID = byteStream.read();
     	int payloadDescriptor = byteStream.read();
     	int ttl = byteStream.read();
     	int hops = byteStream.read();
     	int packetLength = byteStream.read();
-    	
+
     	/*byte[] seqByteArray = new byte[4];
     	if(byteStream.read(seqByteArray, 0, 4) != 4) {
     	    return null;
@@ -161,8 +161,8 @@ public class GnutellaPacket {
 
     	if((HEADER_SIZE + payload.length) != packetLength) {
     	    return null;
-    	}	
-    	
+    	}
+
     	try {
     	    return new GnutellaPacket(messageID, payloadDescriptor, ttl, hops, payload);
     	}catch(IllegalArgumentException e) {
@@ -170,5 +170,5 @@ public class GnutellaPacket {
     	}
     	return null;
     }
-    
+
 }

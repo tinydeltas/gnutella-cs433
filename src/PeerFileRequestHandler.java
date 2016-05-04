@@ -15,7 +15,7 @@ public class PeerFileRequestHandler extends PeerHandler {
     public void onPacketReceive(InetAddress from, byte[] packet) {
         GnutellaPacket pkt = GnutellaPacket.unpack(packet);
         switch (pkt.getPayloadDescriptor()) {
-            case GnutellaPacket.FILE:
+            case GnutellaPacket.OBTAIN:
                 onFileQuery(pkt);
                 break;
             default:

@@ -89,7 +89,7 @@ public class PeerQueryHandler extends PeerHandler {
         StringBuilder res = null;
         try {
             Socket socket = new Socket(sentAddr, parent.getHTTPPORT());
-            GnutellaPacket pkt = new GnutellaPacket(messageID, GnutellaPacket.FILE,
+            GnutellaPacket pkt = new GnutellaPacket(messageID, GnutellaPacket.OBTAIN,
                     GnutellaPacket.DEF_TTL, GnutellaPacket.DEF_HOPS, Utility.stringToByteArray(file));
             DataOutputStream out =
                     new DataOutputStream(socket.getOutputStream());
