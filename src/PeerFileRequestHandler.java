@@ -10,7 +10,8 @@ public class PeerFileRequestHandler {
     }
 
     void onFileQuery(GnutellaPacket pkt) {
-
+        // search through local query
+        // send to TCP connection
     }
 }
 

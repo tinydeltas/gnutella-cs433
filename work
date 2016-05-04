@@ -34,6 +34,12 @@ Peer state
         can be just files stored on machine
     IMMUTABLE DATA STRUCTURE list of neighbors
 
+File requesting
+    go through list of files to get
+    form queries for all of them
+    send them off
+    timeouts?
+
 Query handling - query()
     checking that the message hasn't already been seen
     updating the associative array
@@ -44,7 +50,9 @@ Query handling - query()
 
 Hitquery handling - hitquery()
     searching the associative array
-    sends hitquery message upstream
+    if not something the peer sent,
+        sends hitquery message upstream
+    otherwise, open connection to the appropriate port and download the file
 
 File request handling - filerequest()
     specify the port
@@ -52,6 +60,7 @@ File request handling - filerequest()
     HTTP protocol - file index, file size, file name
 
 Multithreading
+    Client-side
     HTTP port - 5760
         upon reception of TCP connection request, accepting TCP connections from upstream for files peer has
     Queries port - 7777
@@ -63,8 +72,8 @@ Multithreading
 Extensions
 
 Push
-Cache
-Ultrapeers
+    - Cache
+    - Ultrapeers
 Improve search efficiency
 Dynamic querying
 Querying routing protocol

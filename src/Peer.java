@@ -31,6 +31,8 @@ public class Peer {
         for(InetAddress ia : neighbors){
             System.out.println(ia);
         }
+
+        arr = new QueryArray(100);
     }
 
     //args as follows:
