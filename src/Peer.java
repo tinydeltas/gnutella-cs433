@@ -9,6 +9,17 @@ public class Peer {
     private QueryArray arr;
     private InetAddress[] neighbors; // list of neighbors
 
+    private final int THREADPOOLSIZE = 5;
+    private final int QUERY_PORT = 7777;
+    private final int HTTP_PORT = 5760; 
+
+    private ServerSocket queryWelcomeSocket;
+    private ServerSocket httpWelcomeSocket;
+
+    //threads share access to the welcome socket. Requests for queries and 
+    //requests for HTTP GET have different welcome sockets
+    private QueryThread[] queryThreads = new QueryThread[THREADPOOLSIZE];
+    private HTTPThread[] httpThreads = new HTTPThread[THREADPOOLSIZE];
 
     public Peer(String args[]){
         String filename = "";
@@ -31,12 +42,14 @@ public class Peer {
         for(InetAddress ia : neighbors){
             System.out.println(ia);
         }
+
+        run();
     }
 
     //args as follows:
     //java Peer -id <peer_id> -config <configFile>
     public static void main(String args[]) {
-        if(args.length < 2){
+        if(args.length < 4){
             System.out.println("required args: -id <peer_id> -config <configFile");
             return;
         }
@@ -49,6 +62,32 @@ public class Peer {
         // accepts queries
         // spins off PeerQueryHandler thread
 
+         try{
+            queryWelcomeSocket = new ServerSocket(QUERY_PORT);
+            httpWelcomeSocket = new ServerSocket(HTTP_PORT);
+
+            for(int i = 0; i < THREADPOOLSIZE; i++) {
+                queryThreads[i] = new QueryThread(queryWelcomeSocket); //TO-DO need the parameters
+                queryThreads[i].start();
+
+                httpThreads[i] = new HTTPThread(httpWelcomeSocket);
+                httpThreads[i].start();
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+            System.out.println("Server construction failed.");
+        }
+
+
+        try {
+            for (int i = 0; i < THREADPOOLSIZE; i++) {
+                queryThreads[i].join();
+                httpThreads[i].join();
+            }
+            System.out.println("All threads finished. Exit");
+        } catch (Exception e) {
+            System.out.println("Join errors");
+        }
     }
 
     public void accept() {
