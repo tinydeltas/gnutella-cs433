@@ -1,9 +1,6 @@
-import java.io.InputStreamReader;
 import java.net.*;
-import java.util.*;
-import java.lang.Thread;
 
-public class QueryThread extends GnutellaThread{
+public class QueryThread extends GnutellaThread {
 	public QueryThread(Peer p,ServerSocket welcomeSocket){
         super(p, welcomeSocket);
 	}

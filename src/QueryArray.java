@@ -1,11 +1,10 @@
 import java.net.InetAddress;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class QueryArray {
-    Map<Integer, InetAddress> map;
-    int maxEntries;
+class QueryArray {
+    private final Map<Integer, InetAddress> map;
+    private final int maxEntries;
 
     public QueryArray(int maxEntries) {
         this.maxEntries = maxEntries;
@@ -13,21 +12,24 @@ public class QueryArray {
     }
 
     InetAddress retrieve(int messageID) {
-        return map.get((Object) messageID);
+        return map.get(messageID);
     }
 
     void add(int messageID, InetAddress addr) {
+        Debug.DEBUG("Adding [" + messageID + ", " + addr.getCanonicalHostName(),
+                "QueryArray:add");
         map.put(messageID, addr);
         flush();
     }
 
     boolean containsKey(int messageID) {
-        return map.containsKey((Object) messageID);
+        return map.containsKey(messageID);
     }
 
-    void flush() {
+    private void flush() {
         // flushes oldest (?) entry
         if (map.size() > maxEntries && map.size() != 0) {
+            Debug.DEBUG("Removing oldest entry", "QueryArray:flush");
             map.remove(0);
         }
     }

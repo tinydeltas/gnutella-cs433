@@ -1,13 +1,12 @@
 import java.io.*;
 import java.net.*;
-import java.util.*;
 import java.lang.Thread;
 
-public abstract class GnutellaThread extends Thread{
-	Peer peer;
-	ServerSocket welcomeSocket;
+abstract class GnutellaThread extends Thread{
+	public final Peer peer;
+	public final ServerSocket welcomeSocket;
 
-	public GnutellaThread(Peer p, ServerSocket welcomeSocket){
+	GnutellaThread(Peer p, ServerSocket welcomeSocket){
 		this.welcomeSocket = welcomeSocket;
 		this.peer = p;
 	}
@@ -29,23 +28,23 @@ public abstract class GnutellaThread extends Thread{
 		}
 	}
 
-	public byte[] readFromSocket(Socket socket) {
+	byte[] readFromSocket(Socket socket) {
 		byte[] request = null;
 		try {
 			InputStream inputStream = socket.getInputStream();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 			request = new byte[ 128 ];
-			int bytesRead = -1;
+			int bytesRead;
 			while ((bytesRead = inputStream.read(request)) != -1) {
 				baos.write(request, 0, bytesRead);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			return request;
 		}
+
+		return request;
 	}
 
-	public abstract void serveRequest(Socket socket);
+	protected abstract void serveRequest(Socket socket);
 }

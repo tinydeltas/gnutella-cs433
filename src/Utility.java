@@ -7,7 +7,7 @@ import java.io.UnsupportedEncodingException;
  * Provides some useful static methods
  * </pre>   
  */
-public class Utility {
+class Utility {
     
     private static final String CHARSET = "US-ASCII";
 

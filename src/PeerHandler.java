@@ -3,20 +3,21 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public abstract class PeerHandler {
-    public Peer parent;
-    public Socket socket;
-    public ServerSocket welcomeSocket;
+abstract class PeerHandler {
+    final Peer parent;
+    final Socket socket;
+    final ServerSocket welcomeSocket;
 
-    public PeerHandler(Peer parent, ServerSocket welcomeSocket, Socket socket) {
+    PeerHandler(Peer parent, ServerSocket welcomeSocket, Socket socket) {
         this.parent = parent;
         this.welcomeSocket = welcomeSocket;
         this.socket = socket;
     }
 
-    public abstract void onPacketReceive(InetAddress from, byte[] packet);
+    void sendPacket(InetAddress to, int port, GnutellaPacket pkt) {
+        Debug.DEBUG_F("Sending packet to" + to.getCanonicalHostName()
+                + ":" + pkt.toString(), "sendPacket");
 
-    public void sendPacket(InetAddress to, int port, GnutellaPacket pkt) {
         try {
             Socket s = new Socket(to, port);
             DataOutputStream out =

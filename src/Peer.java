@@ -1,8 +1,6 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.*;
 import java.util.*;
-import java.net.InetAddress;
 
 public class Peer {
     private int id;
@@ -15,15 +13,12 @@ public class Peer {
     private final int QUERYPORT = 7777;
     private final int HTTPPORT = 5760;
 
-    private ServerSocket queryWelcomeSocket;
-    private ServerSocket httpWelcomeSocket;
-
     //threads share access to the welcome socket. Requests for queries and
     //requests for HTTP GET have different welcome sockets
-    private QueryThread[] queryThreads = new QueryThread[THREADPOOLSIZE];
-    private HTTPThread[] httpThreads = new HTTPThread[THREADPOOLSIZE];
+    private final QueryThread[] queryThreads = new QueryThread[THREADPOOLSIZE];
+    private final HTTPThread[] httpThreads = new HTTPThread[THREADPOOLSIZE];
 
-    public Peer(String args[]){
+    private Peer(String args[]){
         String filename = "";
 
         for(int i = 0; i < args.length; i++){
@@ -44,10 +39,11 @@ public class Peer {
             return;
         }
 
-        System.out.println(id);
-        System.out.println(dirRoot);
+        System.out.println("ID: " + id);
+        System.out.println("ROOT: " + dirRoot);
+        System.out.println("Neighbors: ");
         for(InetAddress ia : neighbors){
-            System.out.println(ia);
+            System.out.print("\t" + ia);
         }
 
         arr = new QueryArray(100);
@@ -106,14 +102,14 @@ public class Peer {
     }
 
 
-    public void run() {
+    private void run() {
         // run the server listening at queries port
         // accepts queries
         // spins off PeerQueryHandler thread
 
          try{
-            queryWelcomeSocket = new ServerSocket(QUERYPORT);
-            httpWelcomeSocket = new ServerSocket(HTTPPORT);
+             ServerSocket queryWelcomeSocket = new ServerSocket(QUERYPORT);
+             ServerSocket httpWelcomeSocket = new ServerSocket(HTTPPORT);
 
             for(int i = 0; i < THREADPOOLSIZE; i++) {
                 queryThreads[i] = new QueryThread(this, queryWelcomeSocket); //TO-DO need the parameters
@@ -142,7 +138,7 @@ public class Peer {
         }
     }
 
-    public boolean setUpConfiguration(String configFile){
+    private boolean setUpConfiguration(String configFile){
         try {
             BufferedReader br = new BufferedReader(new FileReader(configFile));
             ArrayList<InetAddress> arrlist = new ArrayList<InetAddress>();

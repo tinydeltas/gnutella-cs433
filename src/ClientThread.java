@@ -5,10 +5,10 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-public class ClientThread extends Thread {
-    private byte[] newline = Utility.stringToByteArray("\r\n");
-    Peer peer;
-    ArrayList<String> files;
+class ClientThread extends Thread {
+    private final byte[] newline = Utility.stringToByteArray("\r\n");
+    private final Peer peer;
+    private final ArrayList<String> files;
 
     public ClientThread(Peer p, ArrayList<String> files){
         this.peer = p;
@@ -31,10 +31,10 @@ public class ClientThread extends Thread {
         return Utility.stringToByteArray(sb);
     }
 
-    public void broadcast(int curFile) {
+    private void broadcast(int curFile) {
         // send request to all neighbors
         for (InetAddress n : peer.neighbors) {
-
+            //todo
         }
     }
 
@@ -71,6 +71,7 @@ public class ClientThread extends Thread {
             int fileBytes = 0;
             while ((line = serverReader.readLine()) != null && fileBytes < contentLength) {
                 fileBytes += line.getBytes(StandardCharsets.US_ASCII).length;
+                assert newline != null;
                 fileBytes += newline.length;
             }
         }

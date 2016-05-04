@@ -1,4 +1,3 @@
-import java.util.*;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 
@@ -9,7 +8,7 @@ import java.io.ByteArrayInputStream;
  */
 public class GnutellaPacket {
 
-    public static final int HEADER_SIZE = 5;
+    private static final int HEADER_SIZE = 5;
     //public static final int MAX_PACKET_SIZE = 128;  // bytes  //may bring these back if we decide we need them
     //public static final int MAX_PAYLOAD_SIZE = MAX_PACKET_SIZE - HEADER_SIZE;  // bytes
     public static final int MAX_TTL = 15;           // max hop count
@@ -40,7 +39,7 @@ public class GnutellaPacket {
         this.hops = hops;
     }
 
-    boolean isValid(int messageID, int payloadDescriptor, int ttl, int hops, byte[] payload){
+    private boolean isValid(int messageID, int payloadDescriptor, int ttl, int hops, byte[] payload){
         //TO-DO - actually check the arguments for validity
         return true;
     }
@@ -51,8 +50,8 @@ public class GnutellaPacket {
      * @return A string representation of the packet.
      */
     public String toString() {
-	return new String("GnutellaPacket: " + this.messageID + "; " + this.payloadDescriptor + "; ttl: " + this.ttl + " hops: " + this.hops +
-			 " contents: " + Utility.byteArrayToString(this.payload));
+	return "GnutellaPacket: " + this.messageID + "; " + this.payloadDescriptor + "; ttl: " + this.ttl + " hops: " + this.hops +
+            " contents: " + Utility.byteArrayToString(this.payload);
     }
 
     /**
@@ -75,8 +74,6 @@ public class GnutellaPacket {
     public int getTTL() {
 	return this.ttl;
     }
-
-    public void decTTL() { if (ttl > 0) ttl--;}
 
     /**
      * Sets the TTL of this packet

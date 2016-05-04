@@ -1,6 +1,4 @@
 import java.net.*;
-import java.util.*;
-import java.lang.Thread;
 
 public class HTTPThread extends GnutellaThread{
 	public HTTPThread(Peer p, ServerSocket welcomeSocket){
