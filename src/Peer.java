@@ -3,11 +3,11 @@ import java.net.*;
 import java.util.*;
 
 public class Peer {
-    private int id;
+    private int id = -1;
     public String dirRoot;
     private QueryArray arr;
     public InetAddress[] neighbors; // list of neighbors
-    private ArrayList<String> files;
+    private ArrayList<String> files = null;
 
     private final int THREADPOOLSIZE = 5;
     private final int QUERYPORT = 7777;
@@ -17,6 +17,7 @@ public class Peer {
     //requests for HTTP GET have different welcome sockets
     private final QueryThread[] queryThreads = new QueryThread[THREADPOOLSIZE];
     private final HTTPThread[] httpThreads = new HTTPThread[THREADPOOLSIZE];
+    ClientThread client;
 
     private Peer(String args[]){
         String filename = "";
@@ -32,6 +33,11 @@ public class Peer {
                     return;
                 }
             }
+        }
+
+        if(id == -1){
+            System.out.println("Must specify peer's id number with -id <number>, exiting...");
+            return;
         }
 
         if(!setUpConfiguration(filename)){
@@ -119,7 +125,10 @@ public class Peer {
                 httpThreads[i].start();
             }
 
-             ClientThread client = new ClientThread(this, files);
+            if(files == null)
+                files = new ArrayList<String>();
+
+             client = new ClientThread(this, files);
              client.start();
 
         } catch(Exception e){
@@ -132,6 +141,7 @@ public class Peer {
                 queryThreads[i].join();
                 httpThreads[i].join();
             }
+            client.join();
             System.out.println("All threads finished. Exit");
         } catch (Exception e) {
             System.out.println("Join errors");
