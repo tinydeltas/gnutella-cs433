@@ -5,7 +5,7 @@ import java.net.Socket;
 
 public abstract class PeerHandler {
     public Peer parent;
-    private Socket socket;
+    public Socket socket;
     public ServerSocket welcomeSocket;
 
     public PeerHandler(Peer parent, ServerSocket welcomeSocket, Socket socket) {
@@ -29,13 +29,5 @@ public abstract class PeerHandler {
 
     public void sendPacket(int port, GnutellaPacket pkt) {
         sendPacket(this.socket.getInetAddress(), port, pkt);
-    }
-
-
-
-    public void forwardToNeighbors(GnutellaPacket pkt) {
-        for (InetAddress n : parent.neighbors) {
-            sendPacket(n, parent.getQUERYPORT(), pkt);
-        }
     }
 }

@@ -25,6 +25,7 @@ public class PeerQueryHandler extends PeerHandler {
         }
     }
 
+    /// REGULAR QUERY HANDLING
     private void onQuery(InetAddress from, GnutellaPacket pkt) {
         int messageID = pkt.getMessageID();
         int TTL = pkt.getTTL();
@@ -54,6 +55,13 @@ public class PeerQueryHandler extends PeerHandler {
         return f.exists() && !f.isDirectory();
     }
 
+    public void forwardToNeighbors(GnutellaPacket pkt) {
+        for (InetAddress n : parent.neighbors) {
+            sendPacket(n, parent.getQUERYPORT(), pkt);
+        }
+    }
+
+    /// HIT QUERY HANDLING
     private void onHitQuery(InetAddress from, GnutellaPacket pkt) {
         int messageID = pkt.getMessageID();
         InetAddress originAddr = null;
@@ -103,4 +111,6 @@ public class PeerQueryHandler extends PeerHandler {
             return res.toString();
         }
     }
+
+
 }

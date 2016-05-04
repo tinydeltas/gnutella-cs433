@@ -16,11 +16,12 @@ public abstract class GnutellaThread extends Thread{
 		System.out.println("Thread " + this + " started.");
 
 		while(true){
-			Socket s = null;
+			Socket s;
 			synchronized(welcomeSocket){
 				try{
 					s = welcomeSocket.accept();
 					serveRequest(s);
+					s.close();
 				} catch(IOException e){
 					e.printStackTrace();
 				}

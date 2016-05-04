@@ -1,5 +1,10 @@
+import java.io.DataOutputStream;
+import java.io.File;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class PeerFileRequestHandler extends PeerHandler {
 
@@ -19,9 +24,19 @@ public class PeerFileRequestHandler extends PeerHandler {
         }
     }
 
-    void onFileQuery(GnutellaPacket pkt) {
-        // search through local query
-        // send to TCP connection
+    private void onFileQuery(GnutellaPacket pkt) {
+        String file = Utility.byteArrayToString(pkt.getPayload());
+        File f = new File(file);
+        if (!f.exists() || f.isDirectory())
+            return;
+
+        try {
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            Path path = Paths.get(parent.dirRoot + "/" + file);
+            out.write(Files.readAllBytes(path));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
 
