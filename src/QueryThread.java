@@ -1,16 +1,21 @@
+import java.io.InputStreamReader;
 import java.net.*;
 import java.util.*;
 import java.lang.Thread;
 
 public class QueryThread extends GnutellaThread{
-
-	public QueryThread(ServerSocket welcomeSocket){
-		this.welcomeSocket = welcomeSocket;
+	public QueryThread(Peer p,ServerSocket welcomeSocket){
+        super(p, welcomeSocket);
 	}
 
 	@Override
 	public void serveRequest(Socket socket){
-		System.out.println("[serve request]");
-	}
+		PeerQueryHandler handler = new PeerQueryHandler(this, socket);
+        InetAddress addr = socket.getInetAddress();
+        byte[] request = readFromSocket(socket);
+        handler.onPacketReceive(addr, request);
 
+        Debug.DEBUG("received request from" + socket.getInetAddress().toString(),
+                "QueryThread: serveRequest");
+	}
 }

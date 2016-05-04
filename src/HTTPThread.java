@@ -3,13 +3,18 @@ import java.util.*;
 import java.lang.Thread;
 
 public class HTTPThread extends GnutellaThread{
-	
-	public HTTPThread(ServerSocket welcomeSocket){
-		this.welcomeSocket = welcomeSocket;
+	public HTTPThread(Peer p, ServerSocket welcomeSocket){
+		super(p, welcomeSocket);
 	}
 
 	@Override
 	public void serveRequest(Socket socket){
-		System.out.println("[serve request]");
+        PeerFileRequestHandler handler = new PeerFileRequestHandler(this, socket);
+        InetAddress addr = socket.getInetAddress();
+        byte[] request = readFromSocket(socket);
+        handler.onPacketReceive(addr, request);
+
+        Debug.DEBUG("received request from" + socket.getInetAddress().toString(),
+                "HTTPThread: serveRequest");
 	}
 }

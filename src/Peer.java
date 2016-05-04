@@ -5,13 +5,13 @@ import java.net.InetAddress;
 
 public class Peer {
     private int id;
-    private String dirRoot;
+    public String dirRoot;
     private QueryArray arr;
-    private InetAddress[] neighbors; // list of neighbors
+    public InetAddress[] neighbors; // list of neighbors
 
     private final int THREADPOOLSIZE = 5;
-    private final int QUERY_PORT = 7777;
-    private final int HTTP_PORT = 5760; 
+    private final int QUERYPORT = 7777;
+    private final int HTTPPORT = 5760;
 
     private ServerSocket queryWelcomeSocket;
     private ServerSocket httpWelcomeSocket;
@@ -57,28 +57,47 @@ public class Peer {
         new Peer(args);
     }
 
-    // this design is not the most concise? not sure what else to do
+    public int getHTTPPORT() {
+        return HTTPPORT;
+    }
+
+    public int getQUERYPORT() {
+        return QUERYPORT;
+    }
+
+    public boolean containsID(int messageID) {
+        return arr.containsKey(messageID);
+    }
+
+    public InetAddress getUpstream(int messageID) {
+        return arr.retrieve(messageID);
+    }
+
+    public void addMessageID(int messageID, InetAddress upstreamIP) {
+        arr.add(messageID, upstreamIP);
+    }
+
+
     public void run() {
         // run the server listening at queries port
         // accepts queries
         // spins off PeerQueryHandler thread
 
          try{
-            queryWelcomeSocket = new ServerSocket(QUERY_PORT);
-            httpWelcomeSocket = new ServerSocket(HTTP_PORT);
+            queryWelcomeSocket = new ServerSocket(QUERYPORT);
+            httpWelcomeSocket = new ServerSocket(HTTPPORT);
 
             for(int i = 0; i < THREADPOOLSIZE; i++) {
-                queryThreads[i] = new QueryThread(queryWelcomeSocket); //TO-DO need the parameters
+                queryThreads[i] = new QueryThread(this, queryWelcomeSocket); //TO-DO need the parameters
                 queryThreads[i].start();
 
-                httpThreads[i] = new HTTPThread(httpWelcomeSocket);
+                httpThreads[i] = new HTTPThread(this, httpWelcomeSocket);
                 httpThreads[i].start();
             }
         } catch(Exception e){
             e.printStackTrace();
             System.out.println("Server construction failed.");
         }
-
 
         try {
             for (int i = 0; i < THREADPOOLSIZE; i++) {
@@ -89,24 +108,6 @@ public class Peer {
         } catch (Exception e) {
             System.out.println("Join errors");
         }
-    }
-
-    public void accept() {
-        // accepts file request connections on http port
-        // spins off PeerFileRequestHandler thread
-    }
-
-
-    private void getUpstream(int messageID) {
-
-    }
-
-    private void addMessageID(int messageID, String upstreamIP) {
-
-    }
-
-    public void forwardToNeighbors() {
-
     }
 
     public boolean setUpConfiguration(String configFile){

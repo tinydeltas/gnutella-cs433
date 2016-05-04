@@ -3,13 +3,14 @@ import java.net.*;
 import java.util.*;
 import java.lang.Thread;
 
-public class GnutellaThread extends Thread{
-
+public abstract class GnutellaThread extends Thread{
+	Peer peer;
 	ServerSocket welcomeSocket;
 
-	//public GnutellaThread(ServerSocket welcomeSocket){
-	//	this.welcomeSocket = welcomeSocket;
-	//}
+	public GnutellaThread(Peer p, ServerSocket welcomeSocket){
+		this.welcomeSocket = welcomeSocket;
+		this.peer = p;
+	}
 
 	public void run(){
 		System.out.println("Thread " + this + " started.");
@@ -25,10 +26,25 @@ public class GnutellaThread extends Thread{
 				}
 			}
 		}
-
 	}
 
-	public void serveRequest(Socket socket){
-		//override this, call the appropriate handler
+	public byte[] readFromSocket(Socket socket) {
+		byte[] request = null;
+		try {
+			InputStream inputStream = socket.getInputStream();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+			request = new byte[ 128 ];
+			int bytesRead = -1;
+			while ((bytesRead = inputStream.read(request)) != -1) {
+				baos.write(request, 0, bytesRead);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			return request;
+		}
 	}
+
+	public abstract void serveRequest(Socket socket);
 }

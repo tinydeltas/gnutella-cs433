@@ -20,6 +20,14 @@ public class GnutellaPacket {
     private int hops;
     private byte[] payload;
 
+    public static final int QUERY = 0;
+    public static final int HITQUERY = 1;
+    public static final int FILE = 2;
+    public static final int PUSH = 3;
+
+    public static final int DEF_TTL = 3;
+    public static final int DEF_HOPS = 3;
+
 
     public GnutellaPacket(int messageID, int payloadDescriptor, int ttl, int hops, byte[] payload){
         if(!this.isValid(messageID, payloadDescriptor, ttl, hops, payload)){
@@ -67,6 +75,8 @@ public class GnutellaPacket {
     public int getTTL() {
 	return this.ttl;
     }
+
+    public void decTTL() { if (ttl > 0) ttl--;}
 
     /**
      * Sets the TTL of this packet
