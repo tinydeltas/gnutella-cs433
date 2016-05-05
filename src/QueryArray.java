@@ -11,6 +11,10 @@ class QueryArray {
         this.map = new LinkedHashMap<Integer, InetAddress>();
     }
 
+    boolean contains(int messageID){
+        return map.contains(messageID);
+    }
+
     InetAddress retrieve(int messageID) {
         return map.get(messageID);
     }

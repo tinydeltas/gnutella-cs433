@@ -5,7 +5,7 @@ import java.util.*;
 public class Peer {
     private int id = -1;
     public String dirRoot;
-    private QueryArray arr;
+    public QueryArray arr;
     public InetAddress[] neighbors; // list of neighbors
     private ArrayList<String> files = null;
 
@@ -100,7 +100,10 @@ public class Peer {
     }
 
     public InetAddress getUpstream(int messageID) {
-        return arr.retrieve(messageID);
+        if(arr.contains(messageID))
+            return arr.retrieve(messageID);
+        else
+            return null;
     }
 
     public void addMessageID(int messageID, InetAddress upstreamIP) {

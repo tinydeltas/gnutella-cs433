@@ -43,7 +43,7 @@ class PeerQueryHandler extends PeerHandler {
 
         if (fileExists(file)) {
             byte[] payload =
-                    Utility.stringToByteArray(welcomeSocket.getInetAddress().getCanonicalHostName());
+                    Utility.stringToByteArray(welcomeSocket.getInetAddress().getCanonicalHostName() + ";" + file);
             GnutellaPacket newPkt = new GnutellaPacket(messageID,
                     GnutellaPacket.HITQUERY, TTL - 1, pkt.getHops(), payload);
             sendPacket(from, super.parent.getQUERYPORT(), newPkt);   // send packet upstream
@@ -70,20 +70,36 @@ class PeerQueryHandler extends PeerHandler {
         int messageID = pkt.getMessageID();
         InetAddress originAddr = null;
 
+        String payload;
+
         try {
-             String host = Utility.byteArrayToString(pkt.getPayload());
-             originAddr = InetAddress.getByName(host);
+            String payload = Utility.byteArrayToString(pkt.getPayload());
+            String payloadWords[] = host.split(";");
+            
+            assert payloadWords.length == 2;
+            String host = payloadWords[0];
+            String file = payloadWords[1];
+            originAddr = InetAddress.getByName(host);
         } catch (Exception e) {
             e.printStackTrace();
+            return;
         }
 
         if (originAddr == welcomeSocket.getInetAddress()) {
             //  this was my request!!, open connection to port & retrieve file
-            String file = Utility.byteArrayToString(pkt.getPayload());
+          
+            assert parent.arr.contains(messageID);
+            assert parent.arr.retrieve(messageID) == null;  //null if we originated this query
+            
             String res = retrieveFile(file, originAddr, messageID);
             Debug.DEBUG("Results is " + res.length() + " bytes", "onHitQuery");
         } else {
+
+            //check in case the entry was flushed 
             originAddr = parent.getUpstream(messageID);
+            if(originAddr == null) //some problem occurred, remove the request from network
+                return;
+
             sendPacket(originAddr, parent.getQUERYPORT(), pkt);
             // otherwise forward it along
         }

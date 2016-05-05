@@ -4,11 +4,19 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 class ClientThread extends Thread {
     private final byte[] newline = Utility.stringToByteArray("\r\n");
     private final Peer peer;
     private final ArrayList<String> files;
+    private final NUMTHREADS = 15;
+    private final TIMEOUT = 2;
 
     public ClientThread(Peer p, ArrayList<String> files){
         this.peer = p;
@@ -77,24 +85,22 @@ class ClientThread extends Thread {
         }
     }*/
 
-    private byte[] conGetRequest(String filename) {
-        String sb = "GET /" +
-                filename +
-                " HTTP/1.0\r\n" +
-                "\r\n\r\n";
-
-        return Utility.stringToByteArray(sb);
-    }
+    
 
     private void broadcast(String filename) {
         // send request to all neighbors
         System.out.println("BROADCAST " + filename);
+
+        ExecutorService executor = Executors.newFixedThreadPool(NUMTHREADS);
+
+
+
         for (InetAddress n : peer.neighbors) {
             //todo
             System.out.println("Broadcast" + filename + "to " + n);
 
-            
-
+            BroadcastThread thr = new BroadcastThread(peer, n, filename);
+            executor.submit(thr).get(TIMEOUT, TimeUnit.SECONDS);
 
         }
         //for now, remove it so we can test it without it infinitely looping
@@ -102,7 +108,73 @@ class ClientThread extends Thread {
         files.remove(files.indexOf(filename));
     }
 
-    public void sendRequest(int curFile, InetAddress neighbor) {
+    
+
+}
+
+class BroadcastThread extends Thread{
+
+    Peer peer;
+    InetAddress neighbor;
+    String filename;
+
+    public BroadcastThread(Peer peer, InetAddress neighbor, String filename){
+        this.peer = peer;
+        this.neighbor = neighbor;
+        this.filename = filename;
+    }
+
+
+    public void run(){
+        if(neighbor == null || filename == null || peer == null)
+            return;
+        sendQuery(filename, neighbor);
+
+        //while(!isInterrupted()){
+        //
+        //}
+
+    }
+
+
+    public void sendQuery(){
+        sendQuery(filename, neighbor);
+    }
+
+    public void sendQuery(String filename, InetAddress neighbor){
+
+        //need to check message id in hitQuery
+
+        Random random = new Random();
+        int messageID = random.nextInt(100000);
+        peer.arr.add(messageID, addr);
+
+        byte[] payload = Utility.stringToByteArray(filename);
+
+        GnutellaPacket queryPacket = new GnutellaPacket(messageID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
+        sendPacket(neighbor, peer.getQUERYPORT(), queryPacket);
+    }
+
+    void sendPacket(InetAddress to, int port, GnutellaPacket pkt) {
+        Debug.DEBUG_F("Sending packet to" + to.getCanonicalHostName()
+                + ":" + pkt.toString(), "sendPacket");
+
+        try {
+            Socket s = new Socket(to, port);
+            DataOutputStream out =
+                    new DataOutputStream(s.getOutputStream());
+            out.write(pkt.pack());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /*public void sendHTTPRequest(){
+        sendRequest(filename, neighbor);
+    }
+
+    public void sendHTTPRequest(String filename, InetAddress neighbor) {
         Socket clientSocket = null;
         try {
             clientSocket = new Socket();
@@ -112,7 +184,7 @@ class ClientThread extends Thread {
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             BufferedReader serverReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.US_ASCII));
 
-            outToServer.write(conGetRequest(files.get(curFile)));
+            outToServer.write(conGetRequest(filename);
             outToServer.flush();
 
             String line;
@@ -154,5 +226,14 @@ class ClientThread extends Thread {
         }
 
     }
+
+    private byte[] conGetRequest(String filename) {
+        String sb = "GET /" +
+                filename +
+                " HTTP/1.0\r\n" +
+                "\r\n\r\n";
+
+        return Utility.stringToByteArray(sb);
+    }*/
 
 }
