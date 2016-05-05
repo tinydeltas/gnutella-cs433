@@ -10,13 +10,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+
 
 class ClientThread extends Thread {
     private final byte[] newline = Utility.stringToByteArray("\r\n");
     private final Peer peer;
     private final ArrayList<String> files;
-    private final NUMTHREADS = 15;
-    private final TIMEOUT = 2;
+    private final int NUMTHREADS = 15;
+    private final int TIMEOUT = 2;
 
     public ClientThread(Peer p, ArrayList<String> files){
         this.peer = p;
@@ -93,46 +98,65 @@ class ClientThread extends Thread {
 
         ExecutorService executor = Executors.newFixedThreadPool(NUMTHREADS);
 
+        List<Callable<BroadcastThread>> threadlist = new LinkedList<Callable<BroadcastThread>>();
 
+        if(peer.neighbors == null)
+            return;
 
         for (InetAddress n : peer.neighbors) {
             //todo
             System.out.println("Broadcast" + filename + "to " + n);
 
-            BroadcastThread thr = new BroadcastThread(peer, n, filename);
-            executor.submit(thr).get(TIMEOUT, TimeUnit.SECONDS);
-
+            BroadcastThread thr = new BroadcastThread(peer, n, filename, files);
+            threadlist.add(thr);
         }
+
+        try{
+            executor.invokeAll(threadlist, TIMEOUT, TimeUnit.SECONDS);
+        } catch(InterruptedException e){
+            e.printStackTrace();
+        }
+
         //for now, remove it so we can test it without it infinitely looping
         //(in reality you would only remove the file from the list once you finally get the file)
-        files.remove(files.indexOf(filename));
+        //files.remove(files.indexOf(filename));
     }
 
     
+    public void removeFile(String filename){
+        if(files.contains(filename))
+            files.remove(filename);
+    }
+
 
 }
 
-class BroadcastThread extends Thread{
+class BroadcastThread implements Callable{
 
     Peer peer;
     InetAddress neighbor;
     String filename;
+    ArrayList<String> files;
 
-    public BroadcastThread(Peer peer, InetAddress neighbor, String filename){
+    public BroadcastThread(Peer peer, InetAddress neighbor, String filename, ArrayList<String> files){
         this.peer = peer;
         this.neighbor = neighbor;
         this.filename = filename;
+        this.files = files;
     }
 
 
-    public void run(){
+    public String call(){
         if(neighbor == null || filename == null || peer == null)
-            return;
+            return null;
         sendQuery(filename, neighbor);
 
-        //while(!isInterrupted()){
-        //
-        //}
+        //wait until the file no longer is being looked for (means it was downloaded successfully)
+        //if timeout, assume failure and re-broadcast
+        while(true){
+            if(!files.contains(filename))
+                return null;
+        }
 
     }
 
@@ -147,7 +171,7 @@ class BroadcastThread extends Thread{
 
         Random random = new Random();
         int messageID = random.nextInt(100000);
-        peer.arr.add(messageID, addr);
+        peer.arr.add(messageID, null);
 
         byte[] payload = Utility.stringToByteArray(filename);
 

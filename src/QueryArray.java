@@ -12,7 +12,7 @@ class QueryArray {
     }
 
     boolean contains(int messageID){
-        return map.contains(messageID);
+        return map.containsKey(new Integer(messageID));
     }
 
     InetAddress retrieve(int messageID) {

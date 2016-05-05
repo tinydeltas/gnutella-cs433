@@ -151,6 +151,11 @@ public class Peer {
         }
     }
 
+    public void removeFile(String filename){
+        client.removeFile(filename);
+    }
+
+
     private boolean setUpConfiguration(String configFile){
         try {
             BufferedReader br = new BufferedReader(new FileReader(configFile));

@@ -70,15 +70,15 @@ class PeerQueryHandler extends PeerHandler {
         int messageID = pkt.getMessageID();
         InetAddress originAddr = null;
 
-        String payload;
+        String payload, host, file;
 
         try {
-            String payload = Utility.byteArrayToString(pkt.getPayload());
-            String payloadWords[] = host.split(";");
+            payload = Utility.byteArrayToString(pkt.getPayload());
+            String payloadWords[] = payload.split(";");
             
             assert payloadWords.length == 2;
-            String host = payloadWords[0];
-            String file = payloadWords[1];
+            host = payloadWords[0];
+            file = payloadWords[1];
             originAddr = InetAddress.getByName(host);
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,11 +88,15 @@ class PeerQueryHandler extends PeerHandler {
         if (originAddr == welcomeSocket.getInetAddress()) {
             //  this was my request!!, open connection to port & retrieve file
           
-            assert parent.arr.contains(messageID);
+            assert parent.arr.contains(new Integer(messageID));
             assert parent.arr.retrieve(messageID) == null;  //null if we originated this query
             
             String res = retrieveFile(file, originAddr, messageID);
             Debug.DEBUG("Results is " + res.length() + " bytes", "onHitQuery");
+
+            //remove the file from the list of files we want to request
+            parent.removeFile(file);
+
         } else {
 
             //check in case the entry was flushed 
