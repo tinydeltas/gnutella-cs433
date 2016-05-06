@@ -29,6 +29,7 @@ abstract class GnutellaThread extends Thread{
 	}
 
 	byte[] readFromSocket(Socket socket) {
+		Debug.DEBUG("Attempting to read from socket: " + socket.toString(), "readFromSocket");
 		byte[] request = null;
 		try {
 			InputStream inputStream = socket.getInputStream();

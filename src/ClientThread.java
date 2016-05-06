@@ -3,24 +3,20 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
 
 
 class ClientThread extends Thread {
     private final Peer peer;
     private final ArrayList<String> files;
     private final int NUMTHREADS = 15;
-    private final int TIMEOUT = 2;
+    private final int TIMEOUT = 5;
 
     public ClientThread(Peer p, ArrayList<String> files){
         this.peer = p;
@@ -77,9 +73,9 @@ class ClientThread extends Thread {
 //
 //            }
 
-            for (int i = 0; i < files.size(); i++)
+            for (int i = 0; i < files.size(); i++) {
                 broadcast(files.get(i));
-
+            }
         }
     }
 
@@ -89,25 +85,36 @@ class ClientThread extends Thread {
 
         ExecutorService executor = Executors.newFixedThreadPool(NUMTHREADS);
 
-        List<Callable<BroadcastThread>> threadlist = new LinkedList<Callable<BroadcastThread>>();
+        Collection threadlist = new LinkedList<Callable<BroadcastThread>>();
 
         if(peer.neighbors == null)
             return;
 
         for (InetAddress n : peer.neighbors) {
-            //todo
             System.out.println("Broadcast" + filename + " to " + n);
 
             BroadcastThread thr = new BroadcastThread(peer, n, filename, files);
             threadlist.add(thr);
         }
 
-        Debug.DEBUG("Finished adding all threads", "broadcast");
+        Debug.DEBUG("Finished adding all threads " + threadlist.size(), "broadcast");
+        List<Future<?>> futures;
         try{
-            executor.invokeAll(threadlist, TIMEOUT, TimeUnit.SECONDS);
+            futures = executor.invokeAll(threadlist, TIMEOUT, TimeUnit.SECONDS);
+            for (Future<?> future: futures) {
+                future.get();
+                if (future.isDone())
+                    Debug.DEBUG("Task completed", "broadcast");
+            }
         } catch(InterruptedException e){
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+//        for (;;);
+
+//        Debug.DEBUG("Function finished", "broadcast");
 
         //for now, remove it so we can test it without it infinitely looping
         //(in reality you would only remove the file from the list once you finally get the file)
@@ -118,8 +125,6 @@ class ClientThread extends Thread {
         if(files.contains(filename))
             files.remove(filename);
     }
-
-
 }
 
 class BroadcastThread implements Callable{
@@ -139,16 +144,19 @@ class BroadcastThread implements Callable{
         Debug.DEBUG("Running broadcast thread", "call");
         if(neighbor == null || filename == null || peer == null)
             return null;
+
         sendQuery(filename, neighbor);
 
         //wait until the file no longer is being looked for (means it was downloaded successfully)
         //if timeout, assume failure and re-broadcast
-        while(true){
+        Debug.DEBUG("Function finished", "call");
+        for (;;) {
             if(!files.contains(filename)) {
                 Debug.DEBUG("Found file", "BroadcastThread: call");
                 return null;
             }
         }
+
     }
 
     public void sendQuery(){
@@ -159,12 +167,15 @@ class BroadcastThread implements Callable{
         //need to check message id in hitQuery
         Debug.DEBUG("Sending query for " + neighbor, "sendQuery");
         Random random = new Random();
-        int messageID = random.nextInt(100000);
+        int messageID = random.nextInt(1000);
+        Debug.DEBUG("Message id: " + messageID, "sendQuery");
         peer.arr.add(messageID, null);
+        Debug.DEBUG("Added to array", "sendQuery");
 
         byte[] payload = Utility.stringToByteArray(filename);
         GnutellaPacket queryPacket =
                 new GnutellaPacket(messageID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
+
         sendPacket(neighbor, peer.getQUERYPORT(), queryPacket);
     }
 
@@ -178,76 +189,10 @@ class BroadcastThread implements Callable{
                     new DataOutputStream(s.getOutputStream());
             out.write(pkt.pack());
             Debug.DEBUG("Wrote the packet", "sendPacket");
+            out.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-
-    /*public void sendHTTPRequest(){
-        sendRequest(filename, neighbor);
-    }
-
-    public void sendHTTPRequest(String filename, InetAddress neighbor) {
-        Socket clientSocket = null;
-        try {
-            clientSocket = new Socket();
-            clientSocket.connect(new InetSocketAddress(neighbor, peer.getQUERYPORT()));
-
-            InputStream is = clientSocket.getInputStream();
-            DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-            BufferedReader serverReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.US_ASCII));
-
-            outToServer.write(conGetRequest(filename);
-            outToServer.flush();
-
-            String line;
-            int contentLength = 0;
-            boolean first = true;
-            while ((line = serverReader.readLine()) != null && !line.equals("")) {
-                if (first) {
-                    first = false;
-                }
-                String[] lines = line.split(":\\s");
-                if (lines[0].equals("Content-Length"))
-                    contentLength = Integer.parseInt(lines[1]);
-                else if (lines[0].equals("HTTP/1.1")) {
-                    if (!lines[1].equals("200")) {
-                        System.out.println("Status code: " + lines[1]);
-                    }
-                }
-            }
-
-            int fileBytes = 0;
-            while ((line = serverReader.readLine()) != null && fileBytes < contentLength) {
-                fileBytes += line.getBytes(StandardCharsets.US_ASCII).length;
-                assert newline != null;
-                fileBytes += newline.length;
-            }
-        }
-
-        catch (IOException e1) {
-            System.out.println("Exception while making request");
-            e1.printStackTrace();
-        } finally {
-            if (clientSocket != null){
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-    }
-
-    private byte[] conGetRequest(String filename) {
-        String sb = "GET /" +
-                filename +
-                " HTTP/1.0\r\n" +
-                "\r\n\r\n";
-
-        return Utility.stringToByteArray(sb);
-    }*/
 
 }

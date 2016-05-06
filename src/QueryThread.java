@@ -7,12 +7,13 @@ public class QueryThread extends GnutellaThread {
 
 	@Override
 	public void serveRequest(Socket socket){
+		Debug.DEBUG("received request from" + socket.getInetAddress().toString(),
+				"QueryThread: serveRequest");
 		PeerQueryHandler handler = new PeerQueryHandler(this, socket);
         InetAddress addr = socket.getInetAddress();
         byte[] request = readFromSocket(socket);
+		Debug.DEBUG("Received request from socket: ",
+				"QueryThread: serveRequest");
         handler.onPacketReceive(addr, request);
-
-        Debug.DEBUG("received request from" + socket.getInetAddress().toString(),
-                "QueryThread: serveRequest");
 	}
 }

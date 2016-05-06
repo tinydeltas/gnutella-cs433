@@ -1,5 +1,7 @@
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -32,11 +34,14 @@ public class GnutellaPacket {
         if(!this.isValid(messageID, payloadDescriptor, ttl, hops, payload)){
             throw new IllegalArgumentException("Arguments passed to constructor of GnutellaPacket are invalid");
         }
+
         this.messageID = messageID;
         this.payloadDescriptor = payloadDescriptor;
         this.payload = payload;
         this.ttl = ttl;
         this.hops = hops;
+
+        Debug.DEBUG("Creating new packet: " + this.toString(), "GnutellaPacket constructor");
     }
 
     private boolean isValid(int messageID, int payloadDescriptor, int ttl, int hops, byte[] payload){
@@ -117,15 +122,22 @@ public class GnutellaPacket {
     	byteStream.write(this.payloadDescriptor);
     	byteStream.write(this.ttl);
     	byteStream.write(this.hops);
-    	byteStream.write(this.payload.length + HEADER_SIZE); //plus header size? CHECK
+
+        Debug.DEBUG("Message ID: " + this.messageID, "pack");
+        Debug.DEBUG("Descriptor: " + this.payloadDescriptor, "pack");
+        Debug.DEBUG("TTL: " + this.ttl, "pack");
+        Debug.DEBUG("Hops: " + this.hops, "pack");
+        Debug.DEBUG("Payload length: " + this.payload.length + "+" + HEADER_SIZE, "pack");
+
+        int length = this.payload.length + HEADER_SIZE;
+    	byteStream.write(length); //plus header size? CHECK
+        byteStream.write(this.payload, 0, this.payload.length);
 
     	//byte[] seqByteArray = (BigInteger.valueOf(this.seq)).toByteArray();
     	/*int paddingLength = 4;  //4 - seqByteArray.length;
     	for(int i = 0; i < paddingLength; i++) {
     	    byteStream.write(0);
     	}*/
-
-    	byteStream.write(this.payload, 0, this.payload.length);
 
     	return byteStream.toByteArray();
     }
@@ -137,7 +149,9 @@ public class GnutellaPacket {
      * @return Packet object created or null if the byte[] representation was corrupted
      */
     public static GnutellaPacket unpack(byte[] packedPacket){
-
+        Debug.DEBUG("Unpacking packet ", "unpack");
+        String packet = Utility.byteArrayToString(packedPacket);
+        Debug.DEBUG("Packet in string form: " + packet, "unpack");
     	ByteArrayInputStream byteStream = new ByteArrayInputStream(packedPacket);
 
     	int messageID = byteStream.read();
@@ -145,6 +159,8 @@ public class GnutellaPacket {
     	int ttl = byteStream.read();
     	int hops = byteStream.read();
     	int packetLength = byteStream.read();
+        Debug.DEBUG("ID: " + messageID + "descriptor: " + payloadDescriptor +
+        " ttl: " + ttl + " hops: " + hops, "unpack");
 
     	/*byte[] seqByteArray = new byte[4];
     	if(byteStream.read(seqByteArray, 0, 4) != 4) {
@@ -157,12 +173,16 @@ public class GnutellaPacket {
     	byteStream.read(payload, 0, payload.length);
 
     	if((HEADER_SIZE + payload.length) != packetLength) {
+            Debug.DEBUG("Error, wrong size. Header size: " + HEADER_SIZE +
+            " + payload length: " + payload.length + " != packet length: " +
+            packetLength, "unpack");
     	    return null;
     	}
 
     	try {
     	    return new GnutellaPacket(messageID, payloadDescriptor, ttl, hops, payload);
     	}catch(IllegalArgumentException e) {
+            e.printStackTrace();
     	    // will return null
     	}
     	return null;

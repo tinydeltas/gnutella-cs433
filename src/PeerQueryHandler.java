@@ -7,12 +7,16 @@ class PeerQueryHandler extends PeerHandler {
 
     public PeerQueryHandler(GnutellaThread thread, Socket socket) {
         super(thread.peer, thread.welcomeSocket, socket);
+        Debug.DEBUG("Creating new handler for " + socket.toString(), "PeerQueryHandler constructor");
     }
 
     public void onPacketReceive(InetAddress from, byte[] packet) {
         // call either onQuery or onHitQuery
         GnutellaPacket pkt = GnutellaPacket.unpack(packet);
+        if (pkt == null)
+            Debug.DEBUG("uh oh", "onPacketReceive");
         assert pkt != null;
+        assert from != null;
         Debug.DEBUG_F("Packet received: " + from.getCanonicalHostName() + ":\n"
             + pkt.toString(), "PeerQueryHandler: onPacketReceive");
 
@@ -68,6 +72,7 @@ class PeerQueryHandler extends PeerHandler {
 
     /// HIT QUERY HANDLING
     private void onHitQuery(InetAddress from, GnutellaPacket pkt) {
+        Debug.DEBUG_F("Received hit query from " + from.getCanonicalHostName(), "onHitQuery");
         int messageID = pkt.getMessageID();
         InetAddress originAddr = null;
 

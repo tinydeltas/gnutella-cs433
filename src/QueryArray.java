@@ -20,7 +20,8 @@ class QueryArray {
     }
 
     void add(int messageID, InetAddress addr) {
-        Debug.DEBUG("Adding [" + messageID + ", " + addr.getCanonicalHostName(),
+        if (addr != null)
+            Debug.DEBUG("Adding [" + messageID + ", " + addr.getCanonicalHostName(),
                 "QueryArray:add");
         map.put(messageID, addr);
         flush();

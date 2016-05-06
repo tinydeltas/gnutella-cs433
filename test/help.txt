@@ -1,2 +1,22 @@
 Description of test cases:
 
+- t1:
+- a1 <---> a2
+    - simple
+    - two nodes
+    - have each other as neighbors
+    - request 1 file which the other has
+
+- t2 (long)
+    - a1 ---> a2 ---> a3 ---> a4 ---> a5
+    - 3-5 nodes
+    - linked to each other
+    - nodes at end of chain request a file that node on other end of chain has
+
+- t3 (slightly more complex)
+    - star topology
+    - saturated, each node has same size set of neighbors, random request pattern
+
+- t4
+
+- t5
