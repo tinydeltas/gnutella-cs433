@@ -4,32 +4,28 @@ import java.util.Map;
 import java.util.UUID;
 
 class QueryArray {
-    private final Map<UUID, InetAddress> map;
+    private Map<IDDescriptorPair, InetAddress> map;
     private final int maxEntries;
 
     public QueryArray(int maxEntries) {
         this.maxEntries = maxEntries;
-        this.map = new LinkedHashMap<UUID, InetAddress>();
+        this.map = new LinkedHashMap<IDDescriptorPair, InetAddress>();
     }
 
-    boolean contains(UUID messageID){
+    boolean contains(UUID messageID, int descriptor){
         return map.containsKey(messageID);
     }
 
-    InetAddress retrieve(UUID messageID) {
+    InetAddress retrieve(UUID messageID, int descriptor) {
         return map.get(messageID);
     }
 
-    void add(UUID messageID, InetAddress addr) {
+    void add(UUID messageID, int descriptor, InetAddress addr) {
         if (addr != null)
             Debug.DEBUG("Adding [" + messageID + ", " + addr.getCanonicalHostName(),
                 "QueryArray:add");
-        map.put(messageID, addr);
+        map.put(new IDDescriptorPair(messageID, descriptor), addr);
         flush();
-    }
-
-    boolean containsKey(UUID messageID) {
-        return map.containsKey(messageID);
     }
 
     private void flush() {
@@ -40,3 +36,37 @@ class QueryArray {
         }
     }
 }
+
+class IDDescriptorPair {
+    UUID id = null;
+    int desc = -1;
+
+    public IDDescriptorPair(UUID id, int descriptor) {
+        this.id = id;
+        this.desc = descriptor;
+    }
+
+    @Override public boolean equals(Object other) {
+        if (!(other instanceof IDDescriptorPair)) {
+            return false;
+        }
+        IDDescriptorPair pairOther = (IDDescriptorPair) other;
+
+        if (pairOther.id == null || pairOther.desc == -1)
+            return false;
+
+        return id.equals(pairOther.id) && desc == pairOther.desc;
+    }
+
+    @Override public int hashCode() {
+        if (id == null || desc == -1)
+            return -1;
+
+        int hash = 23;
+        hash = hash * 31 + id.hashCode();
+        hash = hash * 31 + desc;
+        return hash;
+    }
+
+}
+

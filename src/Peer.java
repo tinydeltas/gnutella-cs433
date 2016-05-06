@@ -95,19 +95,18 @@ public class Peer {
         return QUERYPORT;
     }
 
-    public boolean containsID(UUID messageID) {
-        return arr.containsKey(messageID);
+    public boolean containsID(UUID messageID, int desc) {
+        return arr.contains(messageID, desc);
     }
 
-    public InetAddress getUpstream(UUID messageID) {
-        if(arr.contains(messageID))
-            return arr.retrieve(messageID);
-        else
-            return null;
+    public InetAddress getUpstream(UUID messageID, int desc) {
+        if(arr.contains(messageID, desc))
+            return arr.retrieve(messageID, desc);
+        return null;
     }
 
-    public void addMessageID(UUID messageID, InetAddress upstreamIP) {
-        arr.add(messageID, upstreamIP);
+    public void addMessageID(UUID messageID, int desc,InetAddress upstreamIP) {
+        arr.add(messageID, desc, upstreamIP);
     }
 
 

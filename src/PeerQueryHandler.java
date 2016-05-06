@@ -21,6 +21,10 @@ class PeerQueryHandler extends PeerHandler {
         Debug.DEBUG_F("Packet received: " + from.getCanonicalHostName() + ":\n"
             + pkt.toString(), "PeerQueryHandler: onPacketReceive");
 
+        if (parent.containsID(pkt.getMessageID(),
+                pkt.getPayloadDescriptor())) // checking that the message hasn't already been seen
+            return; // avoids unnecessary forwards
+
         switch (pkt.getPayloadDescriptor()) {
             case GnutellaPacket.HITQUERY:
                 onHitQuery(from, pkt);
@@ -39,13 +43,10 @@ class PeerQueryHandler extends PeerHandler {
         Debug.DEBUG_F("Handling a query from: " + from, "onQuery");
         UUID messageID = pkt.getMessageID();
         int TTL = pkt.getTTL();
-        if (parent.containsID(messageID)) // checking that the message hasn't already been seen
-            return;
-        else
-            parent.addMessageID(messageID, from);
 
-        String file =
-                Utility.byteArrayToString(pkt.getPayload());
+        parent.addMessageID(messageID, GnutellaPacket.QUERY, from);
+
+        String file = Utility.byteArrayToString(pkt.getPayload());
         Debug.DEBUG("File to search: " + file, "onQuery");
 
         if (fileExists(file)) {
@@ -53,13 +54,15 @@ class PeerQueryHandler extends PeerHandler {
             byte[] payload =
                     Utility.stringToByteArray(welcomeSocket.getInetAddress().getCanonicalHostName() + ";" + file);
             GnutellaPacket newPkt = new GnutellaPacket(messageID,
-                    GnutellaPacket.HITQUERY, TTL - 1, pkt.getHops(), payload);
+                    GnutellaPacket.HITQUERY, TTL - 1, pkt.getHops() + 1, payload);
             sendPacket(from, super.parent.getQUERYPORT(), newPkt);   // send packet upstream
         }
 
         if (--TTL != 0) {
             Debug.DEBUG("Forwarding to neighbors", "onQuery");
-            forwardToNeighbors(pkt); //forwarding to neighbors using TCP socket
+            GnutellaPacket newPkt = new GnutellaPacket(messageID,
+                    GnutellaPacket.QUERY, TTL, pkt.getHops() + 1, pkt.getPayload());
+            forwardToNeighbors(from, newPkt); //forwarding to neighbors using TCP socket
         }
     }
 
@@ -68,8 +71,10 @@ class PeerQueryHandler extends PeerHandler {
         return f.exists() && !f.isDirectory();
     }
 
-    private void forwardToNeighbors(GnutellaPacket pkt) {
+    private void forwardToNeighbors(InetAddress from, GnutellaPacket pkt) {
         for (InetAddress n : parent.neighbors) {
+            if (from.equals(n))
+                continue;
             sendPacket(n, parent.getQUERYPORT(), pkt);
         }
     }
@@ -78,6 +83,11 @@ class PeerQueryHandler extends PeerHandler {
     private void onHitQuery(InetAddress from, GnutellaPacket pkt) {
         Debug.DEBUG_F("Received hit query from " + from.getCanonicalHostName(), "onHitQuery");
         UUID messageID = pkt.getMessageID();
+
+        if (parent.getUpstream(messageID, GnutellaPacket.QUERY) == null) {
+            // remove request from network, original query not seen
+            return;
+        }
         InetAddress originAddr = null;
 
         String payload, host, file;
@@ -97,9 +107,8 @@ class PeerQueryHandler extends PeerHandler {
 
         if (originAddr == welcomeSocket.getInetAddress()) {
             //  this was my request!!, open connection to port & retrieve file
-
-            assert parent.arr.contains(messageID);
-            assert parent.arr.retrieve(messageID) == null;  //null if we originated this query
+            assert parent.arr.contains(messageID, GnutellaPacket.QUERY);
+            assert parent.arr.retrieve(messageID, GnutellaPacket.QUERY) == null;  //null if we originated this query
 
             String res = retrieveFile(file, originAddr, messageID);
             Debug.DEBUG("Results is " + res.length() + " bytes", "onHitQuery");
@@ -108,12 +117,7 @@ class PeerQueryHandler extends PeerHandler {
             parent.removeFile(file);
 
         } else {
-
-            //check in case the entry was flushed
-            originAddr = parent.getUpstream(messageID);
-            if(originAddr == null) //some problem occurred, remove the request from network
-                return;
-
+            originAddr = parent.getUpstream(messageID, GnutellaPacket.QUERY);
             sendPacket(originAddr, parent.getQUERYPORT(), pkt);
             // otherwise forward it along
         }
