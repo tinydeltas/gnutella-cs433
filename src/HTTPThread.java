@@ -9,10 +9,8 @@ public class HTTPThread extends GnutellaThread{
 	public void serveRequest(Socket socket){
         PeerFileRequestHandler handler = new PeerFileRequestHandler(this, socket);
         InetAddress addr = socket.getInetAddress();
-        byte[] request = readFromSocket(socket);
+		Debug.DEBUG("Received file request", "HTTPThread serveRequest");
+        byte[] request = handler.readFromSocket();
         handler.onPacketReceive(addr, request);
-
-        Debug.DEBUG("received request from" + socket.getInetAddress().toString(),
-                "HTTPThread: serveRequest");
 	}
 }

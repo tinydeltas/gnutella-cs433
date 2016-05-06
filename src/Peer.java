@@ -8,6 +8,7 @@ public class Peer {
     public QueryArray arr;
     public InetAddress[] neighbors; // list of neighbors
     private ArrayList<String> files = null;
+    public InetAddress addr = null;
 
     private final int THREADPOOLSIZE = 5;
     private final int QUERYPORT = 7777;
@@ -20,6 +21,12 @@ public class Peer {
     ClientThread client;
 
     private Peer(String args[]){
+        try {
+            addr = InetAddress.getLocalHost();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         String filename = "";
 
         for(int i = 0; i < args.length; i++){

@@ -52,7 +52,7 @@ class PeerQueryHandler extends PeerHandler {
         if (fileExists(file)) {
             Debug.DEBUG("File exists", "onQuery");
             byte[] payload =
-                    Utility.stringToByteArray(welcomeSocket.getInetAddress().getCanonicalHostName() + ";" + file);
+                    Utility.stringToByteArray(parent.addr.getCanonicalHostName() + ";" + file);
             GnutellaPacket newPkt = new GnutellaPacket(messageID,
                     GnutellaPacket.HITQUERY, TTL - 1, pkt.getHops() + 1, payload);
             sendPacket(from, super.parent.getQUERYPORT(), newPkt);   // send packet upstream
@@ -73,8 +73,11 @@ class PeerQueryHandler extends PeerHandler {
 
     private void forwardToNeighbors(InetAddress from, GnutellaPacket pkt) {
         for (InetAddress n : parent.neighbors) {
-            if (from.equals(n))
+            if (from.getCanonicalHostName().equals(n.getCanonicalHostName())) {
+                Debug.DEBUG("Skipping node that sent this", "forwardToNeighbors");
                 continue;
+            }
+            Debug.DEBUG("Forwarding to neighbor: " + n.toString() + " from: " + from.toString(), "forwardToNeighbor");
             sendPacket(n, parent.getQUERYPORT(), pkt);
         }
     }
@@ -84,8 +87,9 @@ class PeerQueryHandler extends PeerHandler {
         Debug.DEBUG_F("Received hit query from " + from.getCanonicalHostName(), "onHitQuery");
         UUID messageID = pkt.getMessageID();
 
-        if (parent.getUpstream(messageID, GnutellaPacket.QUERY) == null) {
+        if (!parent.containsID(messageID, GnutellaPacket.QUERY)) {
             // remove request from network, original query not seen
+            Debug.DEBUG("Original query not seen ", "onHitQuery");
             return;
         }
 
@@ -100,12 +104,16 @@ class PeerQueryHandler extends PeerHandler {
             host = payloadWords[0];
             file = payloadWords[1];
             originAddr = InetAddress.getByName(host);
+
+            Debug.DEBUG("Host: " + host + " File: " + file +
+                    " originAddr: " + originAddr.toString(), "onHitQuery");
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
 
-        if (originAddr == welcomeSocket.getInetAddress()) {
+        InetAddress upstream = parent.getUpstream(messageID, GnutellaPacket.QUERY);
+        if (upstream == null) {
             //  this was my request!!, open connection to port & retrieve file
             assert parent.arr.contains(messageID, GnutellaPacket.QUERY);
             assert parent.arr.retrieve(messageID, GnutellaPacket.QUERY) == null;  //null if we originated this query
@@ -117,34 +125,44 @@ class PeerQueryHandler extends PeerHandler {
             parent.removeFile(file);
 
         } else {
-            originAddr = parent.getUpstream(messageID, GnutellaPacket.QUERY);
-            sendPacket(originAddr, parent.getQUERYPORT(), pkt);
+            sendPacket(upstream, parent.getQUERYPORT(), pkt);
             // otherwise forward it along
         }
     }
 
     private String retrieveFile(String file, InetAddress sentAddr, UUID messageID) {
         StringBuilder res = null;
+        Socket newConn = null;
         try {
-            Socket socket = new Socket(sentAddr, parent.getHTTPPORT());
+            newConn = new Socket(sentAddr, parent.getHTTPPORT());
             GnutellaPacket pkt = new GnutellaPacket(messageID, GnutellaPacket.OBTAIN,
                     GnutellaPacket.DEF_TTL, GnutellaPacket.DEF_HOPS, Utility.stringToByteArray(file));
+
             DataOutputStream out =
                     new DataOutputStream(socket.getOutputStream());
-            out.write(pkt.pack());
-
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream(),
                             StandardCharsets.US_ASCII));
+            out.write(pkt.pack());
+//            out.flush();
+            Debug.DEBUG("Successfully flushed", "retrieveFile");
 
             res = new StringBuilder();
             String s;
-            while ((s = reader.readLine()) != null && socket.isConnected() &&
-                    !socket.isInputShutdown()) {
+            while ((s = reader.readLine()) != null) {
                 res.append(s);
             }
+            Debug.DEBUG("Successfully read file info", "retrieveFile");
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (newConn != null){
+                try {
+                    newConn.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         assert res != null;

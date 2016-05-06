@@ -13,11 +13,11 @@ class QueryArray {
     }
 
     boolean contains(UUID messageID, int descriptor){
-        return map.containsKey(messageID);
+        return map.containsKey(new IDDescriptorPair(messageID, descriptor));
     }
 
     InetAddress retrieve(UUID messageID, int descriptor) {
-        return map.get(messageID);
+        return map.get(new IDDescriptorPair(messageID, descriptor));
     }
 
     void add(UUID messageID, int descriptor, InetAddress addr) {

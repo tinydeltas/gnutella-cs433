@@ -25,7 +25,7 @@ public class GnutellaPacket {
     private byte[] payload;
 
     public static final int QUERY = 128;     // 0x80 = Query (see section 3.2.3)
-    public static final int HITQUERY = 120;  // 0x81 = QueryHits (see section 3.2.4)
+    public static final int HITQUERY = 129;  // 0x81 = QueryHits (see section 3.2.4)
     public static final int OBTAIN = 2;
     public static final int PUSH = 3;
 

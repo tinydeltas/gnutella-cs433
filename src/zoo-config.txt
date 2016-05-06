@@ -8,6 +8,5 @@
 <Peer 1>
 	ROOT: /artemis/home/classes/cs433/class/wang.lining.lw456/final-project/test-2
 	<Neighbors>
-		turtle.zoo.cs.yale.edu
 	</Neighbors>
 </Peer>

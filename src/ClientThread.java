@@ -168,7 +168,7 @@ class BroadcastThread implements Callable{
         Debug.DEBUG("Sending query for " + neighbor, "sendQuery");
 
         UUID descriptorID = UUID.randomUUID();
-        peer.arr.add(descriptorID, null);
+        peer.arr.add(descriptorID, GnutellaPacket.QUERY, null);
         byte[] payload = Utility.stringToByteArray(filename);
         GnutellaPacket queryPacket =
                 new GnutellaPacket(descriptorID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
