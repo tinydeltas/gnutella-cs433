@@ -88,8 +88,8 @@ class PeerQueryHandler extends PeerHandler {
             // remove request from network, original query not seen
             return;
         }
-        InetAddress originAddr = null;
 
+        InetAddress originAddr = null;
         String payload, host, file;
 
         try {
