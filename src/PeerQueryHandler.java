@@ -138,15 +138,28 @@ class PeerQueryHandler extends PeerHandler {
             GnutellaPacket pkt = new GnutellaPacket(messageID, GnutellaPacket.OBTAIN,
                     GnutellaPacket.DEF_TTL, GnutellaPacket.DEF_HOPS, Utility.stringToByteArray(file));
 
-            DataOutputStream out =
-                    new DataOutputStream(socket.getOutputStream());
+            //DataOutputStream out =
+            //        new DataOutputStream(socket.getOutputStream());
+            
+            /*Socket sk = new Socket(sentAddr, parent.getHTTPPORT());
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(sk.getInputStream(),
+                            StandardCharsets.US_ASCII));*/
+
+
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream(),
                             StandardCharsets.US_ASCII));
-            out.write(pkt.pack());
+            
+            //System.out.println(GnutellaPacket.unpack(pkt.pack()));
+
+            //System.out.println(sentAddr + ":" +  parent.getHTTPPORT());
+            sendPacket(sentAddr, parent.getHTTPPORT(), pkt);
+
+            //out.write(pkt.pack());
 //            out.flush();
             Debug.DEBUG("Successfully flushed", "retrieveFile");
-
+            //out.close();
             res = new StringBuilder();
             String s;
             while ((s = reader.readLine()) != null) {

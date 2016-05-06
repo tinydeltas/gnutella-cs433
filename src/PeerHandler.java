@@ -40,6 +40,17 @@ abstract class PeerHandler {
         }
     }
 
+    void sendPayload(InetAddress to, int port, byte[] payload){
+        try{
+            Socket s = new Socket(to, port);
+            DataOutputStream out = new DataOutputStream(s.getOutputStream());
+            out.write(payload);
+            out.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
     byte[] readFromSocket() {
         Debug.DEBUG("Attempting to read from socket: " + socket.toString(), "readFromSocket");
         byte[] request = null;
@@ -51,6 +62,7 @@ abstract class PeerHandler {
             while ((bytesRead = is.read(request)) != -1) {
                 baos.write(request, 0, bytesRead);
             }
+            return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
         }

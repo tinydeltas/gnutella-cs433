@@ -17,7 +17,7 @@ class PeerFileRequestHandler extends PeerHandler {
         super(thread.peer, thread.welcomeSocket, socket);
     }
 
-    public void onPacketReceive(InetAddress from, byte[] packet) {
+    public void onPacketReceive(InetAddress from, int port, byte[] packet) {
         GnutellaPacket pkt = GnutellaPacket.unpack(packet);
         assert pkt != null;
         Debug.DEBUG_F("Received packet from: " + from.getCanonicalHostName()
@@ -25,7 +25,7 @@ class PeerFileRequestHandler extends PeerHandler {
 
         switch (pkt.getPayloadDescriptor()) {
             case GnutellaPacket.OBTAIN:
-                onFileQuery(pkt);
+                onFileQuery(pkt, port, from);
                 break;
             default:
                 System.out.println("Unrecognized descriptor");
@@ -33,7 +33,7 @@ class PeerFileRequestHandler extends PeerHandler {
         }
     }
 
-    private void onFileQuery(GnutellaPacket pkt) {
+    private void onFileQuery(GnutellaPacket pkt, int port, InetAddress from) {
         Debug.DEBUG("Responding to file query", "onFileQuery");
         String file = Utility.byteArrayToString(pkt.getPayload());
         assert file != null;
@@ -45,10 +45,14 @@ class PeerFileRequestHandler extends PeerHandler {
         DataOutputStream out = null;
         try {
             Debug.DEBUG("writing bytes to connection", "onFileQuery");
-            out = new DataOutputStream(socket.getOutputStream());
+            //out = new DataOutputStream(socket.getOutputStream());
             Path path = Paths.get(parent.dirRoot + "/" + file);
-            out.write(Files.readAllBytes(path));
-            out.flush();
+            System.out.println(Utility.byteArrayToString(Files.readAllBytes(path)));
+            
+            sendPayload(from, port, Files.readAllBytes(path));
+
+            //out.write(Files.readAllBytes(path));
+            //out.flush();
             Debug.DEBUG("Successfully wrote all bytes to connection", "onFileQuery");
         } catch (Exception e) {
             e.printStackTrace();

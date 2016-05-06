@@ -14,7 +14,7 @@ public class GnutellaPacket {
     private static final int HEADER_ID_SIZE = 16;
     private static final int HEADER_LENGTH_SIZE = 4;
     private static final int HEADER_SIZE = 5;
-    //public static final int MAX_PACKET_SIZE = 128;  // bytes  //may bring these back if we decide we need them
+    public static final int MAX_PACKET_SIZE = 128;  // bytes  //may bring these back if we decide we need them
     //public static final int MAX_PAYLOAD_SIZE = MAX_PACKET_SIZE - HEADER_SIZE;  // bytes
     public static final int MAX_TTL = 15;           // max hop count
 
