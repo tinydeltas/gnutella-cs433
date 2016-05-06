@@ -1,22 +1,39 @@
-Configuration
-    X Neighbors config parsing (group membership -- what peers each peer has as its neighbors)
-        List of IP addresses + peer ID's
-    File config parsing
-        List of files peer wants
-    X Command line parsing (config file,
-    X Debugging interface (copied from previous assignments)
-    Testing:
-        Varying topologies
-        X Text files of various sizes
-        Printing of actions (on query, on hitquery, on file request, etc)
+# todo 
 
-Documentation
-    Design
-    Description of peer vm's
-    Test cases and what commands to run
-    Performance results
+##  Programming 
+- Fix client thread / how do we want to handle file requests? 
+- Possibly another API endpoint? (usable by application, for example) 
+- Extensions
+        ^ Cache
+        * Ultrapeers
+        * Improve search efficiency
+        Dynamic querying
+        Querying routing protocol
+        Push
 
------------------
+##  Testing
+- Add more debugging statements 
+- Come up with 5 test topologies, Helpful with debugging too 
+  - See test/help.txt
+- Tester class
+  - -t1, -t2, ... -t5, -all flags passed into program to 
+  - run each test 
+  - Print output and if passed/failed 
+        
+    
+##  Writeup / documentation 
+- Overview of protocol 
+- Explanation of why this is time-consuming
+- Design & Implementation
+- Extensions (if applicable) 
+- Testing environment description, which machines used etc
+   - overview of test commands 
+- Test cases
+   - Topologies represented graphically? 
+- Results  
+
+-------------------------------------------------------------------------
+# Done 
 
 Classes
     Peer
@@ -66,16 +83,3 @@ Multithreading
     Queries port - 7777
         upon reception of hitquery message, propagating responses back to original sender
         upon reception of query message, sending to neighbors as described above
-
------------------
-
-Extensions
-
-Push
-    - Cache
-    - Ultrapeers
-Improve search efficiency
-Dynamic querying
-Querying routing protocol
-
-

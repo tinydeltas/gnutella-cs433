@@ -17,7 +17,6 @@ import java.util.Random;
 
 
 class ClientThread extends Thread {
-    private final byte[] newline = Utility.stringToByteArray("\r\n");
     private final Peer peer;
     private final ArrayList<String> files;
     private final int NUMTHREADS = 15;
@@ -45,6 +44,7 @@ class ClientThread extends Thread {
             String[] words = nextLine.trim().split("\\s+");
             
             for(int i = 0; i < words.length; i++){
+                Debug.DEBUG("Trying to get file: " + words[i], "ClientThread: run");
                 files.add(words[i]);
             }
 
@@ -64,33 +64,24 @@ class ClientThread extends Thread {
 
             if(files != null){
                 System.out.print("Request files: ");
-                for(String s : files){
+                for(String s : files)
                     System.out.print(s + ", ");
-                }
                 System.out.print("\n");
             }
 
-
             //problem with this design - must wait to get files before entering more.
             //could fix by making ANOTHER thread, but I'm not doing that quite yet.
-            int i = -1;
-            while(files.size() > 0){
-                i = (i+1)%files.size();
+//            int i = -1;
+//            while(files.size() > 0){
+//                i = (i+1) % files.size();
+//
+//            }
+
+            for (int i = 0; i < files.size(); i++)
                 broadcast(files.get(i));
-            }
 
         }
     }
-
-    //original run
-    /*public void run() {
-        int i = 0;
-        for (;;) {
-            broadcast(i++ % files.size());
-        }
-    }*/
-
-    
 
     private void broadcast(String filename) {
         // send request to all neighbors
@@ -105,12 +96,13 @@ class ClientThread extends Thread {
 
         for (InetAddress n : peer.neighbors) {
             //todo
-            System.out.println("Broadcast" + filename + "to " + n);
+            System.out.println("Broadcast" + filename + " to " + n);
 
             BroadcastThread thr = new BroadcastThread(peer, n, filename, files);
             threadlist.add(thr);
         }
 
+        Debug.DEBUG("Finished adding all threads", "broadcast");
         try{
             executor.invokeAll(threadlist, TIMEOUT, TimeUnit.SECONDS);
         } catch(InterruptedException e){
@@ -122,7 +114,6 @@ class ClientThread extends Thread {
         //files.remove(files.indexOf(filename));
     }
 
-    
     public void removeFile(String filename){
         if(files.contains(filename))
             files.remove(filename);
@@ -132,7 +123,6 @@ class ClientThread extends Thread {
 }
 
 class BroadcastThread implements Callable{
-
     Peer peer;
     InetAddress neighbor;
     String filename;
@@ -145,8 +135,8 @@ class BroadcastThread implements Callable{
         this.files = files;
     }
 
-
     public String call(){
+        Debug.DEBUG("Running broadcast thread", "call");
         if(neighbor == null || filename == null || peer == null)
             return null;
         sendQuery(filename, neighbor);
@@ -154,33 +144,32 @@ class BroadcastThread implements Callable{
         //wait until the file no longer is being looked for (means it was downloaded successfully)
         //if timeout, assume failure and re-broadcast
         while(true){
-            if(!files.contains(filename))
+            if(!files.contains(filename)) {
+                Debug.DEBUG("Found file", "BroadcastThread: call");
                 return null;
+            }
         }
-
     }
-
 
     public void sendQuery(){
         sendQuery(filename, neighbor);
     }
 
     public void sendQuery(String filename, InetAddress neighbor){
-
         //need to check message id in hitQuery
-
+        Debug.DEBUG("Sending query for " + neighbor, "sendQuery");
         Random random = new Random();
         int messageID = random.nextInt(100000);
         peer.arr.add(messageID, null);
 
         byte[] payload = Utility.stringToByteArray(filename);
-
-        GnutellaPacket queryPacket = new GnutellaPacket(messageID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
+        GnutellaPacket queryPacket =
+                new GnutellaPacket(messageID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
         sendPacket(neighbor, peer.getQUERYPORT(), queryPacket);
     }
 
     void sendPacket(InetAddress to, int port, GnutellaPacket pkt) {
-        Debug.DEBUG_F("Sending packet to" + to.getCanonicalHostName()
+        Debug.DEBUG_F("Sending packet to " + to.getCanonicalHostName()
                 + ":" + pkt.toString(), "sendPacket");
 
         try {
@@ -188,6 +177,7 @@ class BroadcastThread implements Callable{
             DataOutputStream out =
                     new DataOutputStream(s.getOutputStream());
             out.write(pkt.pack());
+            Debug.DEBUG("Wrote the packet", "sendPacket");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -31,6 +31,7 @@ class PeerQueryHandler extends PeerHandler {
 
     /// REGULAR QUERY HANDLING
     private void onQuery(InetAddress from, GnutellaPacket pkt) {
+        Debug.DEBUG_F("Handling a query from: " + from, "onQuery");
         int messageID = pkt.getMessageID();
         int TTL = pkt.getTTL();
         if (parent.containsID(messageID)) // checking that the message hasn't already been seen
