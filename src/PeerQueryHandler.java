@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 class PeerQueryHandler extends PeerHandler {
 
@@ -36,7 +37,7 @@ class PeerQueryHandler extends PeerHandler {
     /// REGULAR QUERY HANDLING
     private void onQuery(InetAddress from, GnutellaPacket pkt) {
         Debug.DEBUG_F("Handling a query from: " + from, "onQuery");
-        int messageID = pkt.getMessageID();
+        UUID messageID = pkt.getMessageID();
         int TTL = pkt.getTTL();
         if (parent.containsID(messageID)) // checking that the message hasn't already been seen
             return;
@@ -45,8 +46,10 @@ class PeerQueryHandler extends PeerHandler {
 
         String file =
                 Utility.byteArrayToString(pkt.getPayload());
+        Debug.DEBUG("File to search: " + file, "onQuery");
 
         if (fileExists(file)) {
+            Debug.DEBUG("File exists", "onQuery");
             byte[] payload =
                     Utility.stringToByteArray(welcomeSocket.getInetAddress().getCanonicalHostName() + ";" + file);
             GnutellaPacket newPkt = new GnutellaPacket(messageID,
@@ -55,6 +58,7 @@ class PeerQueryHandler extends PeerHandler {
         }
 
         if (--TTL != 0) {
+            Debug.DEBUG("Forwarding to neighbors", "onQuery");
             forwardToNeighbors(pkt); //forwarding to neighbors using TCP socket
         }
     }
@@ -73,7 +77,7 @@ class PeerQueryHandler extends PeerHandler {
     /// HIT QUERY HANDLING
     private void onHitQuery(InetAddress from, GnutellaPacket pkt) {
         Debug.DEBUG_F("Received hit query from " + from.getCanonicalHostName(), "onHitQuery");
-        int messageID = pkt.getMessageID();
+        UUID messageID = pkt.getMessageID();
         InetAddress originAddr = null;
 
         String payload, host, file;
@@ -81,7 +85,7 @@ class PeerQueryHandler extends PeerHandler {
         try {
             payload = Utility.byteArrayToString(pkt.getPayload());
             String payloadWords[] = payload.split(";");
-            
+
             assert payloadWords.length == 2;
             host = payloadWords[0];
             file = payloadWords[1];
@@ -93,10 +97,10 @@ class PeerQueryHandler extends PeerHandler {
 
         if (originAddr == welcomeSocket.getInetAddress()) {
             //  this was my request!!, open connection to port & retrieve file
-          
-            assert parent.arr.contains(new Integer(messageID));
+
+            assert parent.arr.contains(messageID);
             assert parent.arr.retrieve(messageID) == null;  //null if we originated this query
-            
+
             String res = retrieveFile(file, originAddr, messageID);
             Debug.DEBUG("Results is " + res.length() + " bytes", "onHitQuery");
 
@@ -105,7 +109,7 @@ class PeerQueryHandler extends PeerHandler {
 
         } else {
 
-            //check in case the entry was flushed 
+            //check in case the entry was flushed
             originAddr = parent.getUpstream(messageID);
             if(originAddr == null) //some problem occurred, remove the request from network
                 return;
@@ -115,7 +119,7 @@ class PeerQueryHandler extends PeerHandler {
         }
     }
 
-    private String retrieveFile(String file, InetAddress sentAddr, int messageID) {
+    private String retrieveFile(String file, InetAddress sentAddr, UUID messageID) {
         StringBuilder res = null;
         try {
             Socket socket = new Socket(sentAddr, parent.getHTTPPORT());

@@ -23,6 +23,7 @@ abstract class PeerHandler {
             DataOutputStream out =
                     new DataOutputStream(s.getOutputStream());
             out.write(pkt.pack());
+            out.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

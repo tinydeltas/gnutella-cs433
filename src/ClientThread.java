@@ -38,7 +38,7 @@ class ClientThread extends Thread {
             }
 
             String[] words = nextLine.trim().split("\\s+");
-            
+
             for(int i = 0; i < words.length; i++){
                 Debug.DEBUG("Trying to get file: " + words[i], "ClientThread: run");
                 files.add(words[i]);
@@ -166,15 +166,12 @@ class BroadcastThread implements Callable{
     public void sendQuery(String filename, InetAddress neighbor){
         //need to check message id in hitQuery
         Debug.DEBUG("Sending query for " + neighbor, "sendQuery");
-        Random random = new Random();
-        int messageID = random.nextInt(1000);
-        Debug.DEBUG("Message id: " + messageID, "sendQuery");
-        peer.arr.add(messageID, null);
-        Debug.DEBUG("Added to array", "sendQuery");
 
+        UUID descriptorID = UUID.randomUUID();
+        peer.arr.add(descriptorID, null);
         byte[] payload = Utility.stringToByteArray(filename);
         GnutellaPacket queryPacket =
-                new GnutellaPacket(messageID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
+                new GnutellaPacket(descriptorID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
 
         sendPacket(neighbor, peer.getQUERYPORT(), queryPacket);
     }

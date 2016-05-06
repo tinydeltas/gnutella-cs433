@@ -1,25 +1,26 @@
 import java.net.InetAddress;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 class QueryArray {
-    private final Map<Integer, InetAddress> map;
+    private final Map<UUID, InetAddress> map;
     private final int maxEntries;
 
     public QueryArray(int maxEntries) {
         this.maxEntries = maxEntries;
-        this.map = new LinkedHashMap<Integer, InetAddress>();
+        this.map = new LinkedHashMap<UUID, InetAddress>();
     }
 
-    boolean contains(int messageID){
-        return map.containsKey(new Integer(messageID));
+    boolean contains(UUID messageID){
+        return map.containsKey(messageID);
     }
 
-    InetAddress retrieve(int messageID) {
+    InetAddress retrieve(UUID messageID) {
         return map.get(messageID);
     }
 
-    void add(int messageID, InetAddress addr) {
+    void add(UUID messageID, InetAddress addr) {
         if (addr != null)
             Debug.DEBUG("Adding [" + messageID + ", " + addr.getCanonicalHostName(),
                 "QueryArray:add");
@@ -27,7 +28,7 @@ class QueryArray {
         flush();
     }
 
-    boolean containsKey(int messageID) {
+    boolean containsKey(UUID messageID) {
         return map.containsKey(messageID);
     }
 
