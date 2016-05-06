@@ -17,7 +17,7 @@ class PeerFileRequestHandler extends PeerHandler {
         super(thread.peer, thread.welcomeSocket, socket);
     }
 
-    public void onPacketReceive(InetAddress from, int port, byte[] packet) {
+    public void onPacketReceive(InetAddress from, int port, byte[] packet, Socket sock) {
         GnutellaPacket pkt = GnutellaPacket.unpack(packet);
         assert pkt != null;
         Debug.DEBUG_F("Received packet from: " + from.getCanonicalHostName()
@@ -25,7 +25,7 @@ class PeerFileRequestHandler extends PeerHandler {
 
         switch (pkt.getPayloadDescriptor()) {
             case GnutellaPacket.OBTAIN:
-                onFileQuery(pkt, port, from);
+                onFileQuery(pkt, port, from, sock);
                 break;
             default:
                 System.out.println("Unrecognized descriptor");
@@ -33,7 +33,7 @@ class PeerFileRequestHandler extends PeerHandler {
         }
     }
 
-    private void onFileQuery(GnutellaPacket pkt, int port, InetAddress from) {
+    private void onFileQuery(GnutellaPacket pkt, int port, InetAddress from, Socket sock) {
         Debug.DEBUG("Responding to file query", "onFileQuery");
         String file = Utility.byteArrayToString(pkt.getPayload());
         assert file != null;
@@ -49,7 +49,7 @@ class PeerFileRequestHandler extends PeerHandler {
             Path path = Paths.get(parent.dirRoot + "/" + file);
             System.out.println(Utility.byteArrayToString(Files.readAllBytes(path)));
             
-            sendPayload(from, port, Files.readAllBytes(path));
+            sendPayload(sock, Files.readAllBytes(path));
 
             //out.write(Files.readAllBytes(path));
             //out.flush();

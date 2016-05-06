@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 
 abstract class PeerHandler {
     final Peer parent;
@@ -33,6 +35,7 @@ abstract class PeerHandler {
             Socket s = new Socket(to, port);
             DataOutputStream out =
                     new DataOutputStream(s.getOutputStream());
+            out.write(ByteBuffer.allocate(4).putInt(pkt.pack().length).array()); //encode the length in a int
             out.write(pkt.pack());
             out.close();
         } catch (Exception e) {
@@ -40,9 +43,21 @@ abstract class PeerHandler {
         }
     }
 
-    void sendPayload(InetAddress to, int port, byte[] payload){
+    void sendPacket(Socket s, GnutellaPacket pkt){
+        try {
+            DataOutputStream out =
+                    new DataOutputStream(s.getOutputStream());
+            out.write(ByteBuffer.allocate(4).putInt(pkt.pack().length).array());
+            out.write(pkt.pack());
+            //does NOT close socket
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void sendPayload(Socket s, byte[] payload){
         try{
-            Socket s = new Socket(to, port);
+            //Socket s = new Socket(to, port);
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
             out.write(payload);
             out.close();
@@ -54,15 +69,31 @@ abstract class PeerHandler {
     byte[] readFromSocket() {
         Debug.DEBUG("Attempting to read from socket: " + socket.toString(), "readFromSocket");
         byte[] request = null;
+        byte[] lenArr = null;
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
+            lenArr = new byte[4];
             request = new byte[ 128 ];
-            int bytesRead;
-            while ((bytesRead = is.read(request)) != -1) {
-                baos.write(request, 0, bytesRead);
+            int bytesRead = 0;
+            int sum = 0;
+
+            //not optimal because doesn't detect socket close
+
+            while((bytesRead = is.read(lenArr, bytesRead, 4-bytesRead))!= 0 && sum+bytesRead < 4){
+                sum += bytesRead;
             }
-            return baos.toByteArray();
+            int messageLen = new BigInteger(lenArr).intValue();
+            System.out.println("messageLen: " + messageLen);
+
+            bytesRead = 0;
+            sum = 0;
+            while ((bytesRead = is.read(request, bytesRead, messageLen-bytesRead)) != -1 && sum+bytesRead < messageLen) {
+                sum += bytesRead;
+                System.out.println(bytesRead);
+            }
+            //baos.write(request, 0, bytesRead);
+            //return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
         }

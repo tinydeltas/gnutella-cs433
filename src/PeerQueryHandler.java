@@ -132,29 +132,34 @@ class PeerQueryHandler extends PeerHandler {
 
     private String retrieveFile(String file, InetAddress sentAddr, UUID messageID) {
         StringBuilder res = null;
-        Socket newConn = null;
+        Socket sk = null;
         try {
-            newConn = new Socket(sentAddr, parent.getHTTPPORT());
+            //newConn = new Socket(sentAddr, parent.getHTTPPORT());
             GnutellaPacket pkt = new GnutellaPacket(messageID, GnutellaPacket.OBTAIN,
                     GnutellaPacket.DEF_TTL, GnutellaPacket.DEF_HOPS, Utility.stringToByteArray(file));
 
             //DataOutputStream out =
             //        new DataOutputStream(socket.getOutputStream());
             
-            /*Socket sk = new Socket(sentAddr, parent.getHTTPPORT());
+            sk = new Socket(sentAddr, parent.getHTTPPORT());
+            System.out.println(sk);
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(sk.getInputStream(),
-                            StandardCharsets.US_ASCII));*/
-
-
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream(),
                             StandardCharsets.US_ASCII));
+
+            System.out.println(socket);
+            
+            sendPacket(sk, pkt);
+
+
+            //BufferedReader reader = new BufferedReader(
+            //        new InputStreamReader(socket.getInputStream(),
+            //                StandardCharsets.US_ASCII));
             
             //System.out.println(GnutellaPacket.unpack(pkt.pack()));
 
             //System.out.println(sentAddr + ":" +  parent.getHTTPPORT());
-            sendPacket(sentAddr, parent.getHTTPPORT(), pkt);
+            //sendPacket(sentAddr, parent.getHTTPPORT(), pkt);
 
             //out.write(pkt.pack());
 //            out.flush();
@@ -163,15 +168,16 @@ class PeerQueryHandler extends PeerHandler {
             res = new StringBuilder();
             String s;
             while ((s = reader.readLine()) != null) {
+                System.out.println("newline: " + s);
                 res.append(s);
             }
             Debug.DEBUG("Successfully read file info", "retrieveFile");
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (newConn != null){
+            if (sk != null){
                 try {
-                    newConn.close();
+                    sk.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

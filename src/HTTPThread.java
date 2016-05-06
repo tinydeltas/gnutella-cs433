@@ -11,6 +11,6 @@ public class HTTPThread extends GnutellaThread{
         InetAddress addr = socket.getInetAddress();
 		Debug.DEBUG("Received file request", "HTTPThread serveRequest");
         byte[] request = handler.readFromSocket();
-        handler.onPacketReceive(addr, socket.getPort(), request);
+        handler.onPacketReceive(addr, socket.getPort(), request, socket);
 	}
 }

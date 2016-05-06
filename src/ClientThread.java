@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
+import java.nio.ByteBuffer;
 
 class ClientThread extends Thread {
     private final Peer peer;
@@ -172,7 +172,6 @@ class BroadcastThread implements Callable{
         byte[] payload = Utility.stringToByteArray(filename);
         GnutellaPacket queryPacket =
                 new GnutellaPacket(descriptorID, GnutellaPacket.QUERY, GnutellaPacket.DEF_TTL, 0, payload);
-
         sendPacket(neighbor, peer.getQUERYPORT(), queryPacket);
     }
 
@@ -184,6 +183,9 @@ class BroadcastThread implements Callable{
             Socket s = new Socket(to, port);
             DataOutputStream out =
                     new DataOutputStream(s.getOutputStream());
+            
+            System.out.println(byteArrayToInt(ByteBuffer.allocate(4).putInt(pkt.pack().length).array()));
+            out.write(ByteBuffer.allocate(4).putInt(pkt.pack().length).array());
             out.write(pkt.pack());
             Debug.DEBUG("Wrote the packet", "sendPacket");
             out.close();
@@ -191,5 +193,13 @@ class BroadcastThread implements Callable{
             e.printStackTrace();
         }
     }
+
+public static int byteArrayToInt(byte[] b) 
+{
+    return   b[3] & 0xFF |
+            (b[2] & 0xFF) << 8 |
+            (b[1] & 0xFF) << 16 |
+            (b[0] & 0xFF) << 24;
+}
 
 }
