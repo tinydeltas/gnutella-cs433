@@ -169,7 +169,7 @@ public class GnutellaPacket {
 
     	int seq = (new BigInteger(seqByteArray)).intValue();*/
 
-    	byte[] payload = new byte[byteStream.available()];
+    	byte[] payload = new byte[packetLength - HEADER_SIZE];
     	byteStream.read(payload, 0, payload.length);
 
     	if((HEADER_SIZE + payload.length) != packetLength) {
