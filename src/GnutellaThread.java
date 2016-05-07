@@ -3,18 +3,18 @@ import java.net.*;
 import java.lang.Thread;
 
 abstract class GnutellaThread extends Thread{
-	public final Peer peer;
+	public final Servent servent;
 	public final ServerSocket welcomeSocket;
 
-	GnutellaThread(Peer p, ServerSocket welcomeSocket){
+	GnutellaThread(Servent p, ServerSocket welcomeSocket){
 		this.welcomeSocket = welcomeSocket;
-		this.peer = p;
+		this.servent = p;
 	}
 
 	public void run(){
 		System.out.println("Thread " + this + " started.");
 
-		while(true){
+		for (;;){
 			Socket s;
 			synchronized(welcomeSocket){
 				try{

@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class Peer {
+public class Servent {
     private int id = -1;
     public String dirRoot;
     public QueryArray arr;
@@ -18,9 +18,9 @@ public class Peer {
     //requests for HTTP GET have different welcome sockets
     private final QueryThread[] queryThreads = new QueryThread[THREADPOOLSIZE];
     private final HTTPThread[] httpThreads = new HTTPThread[THREADPOOLSIZE];
-    ClientThread client;
+    public ClientThread client;
 
-    private Peer(String args[]){
+    private Servent(String args[]){
         try {
             addr = InetAddress.getLocalHost();
         } catch (Exception e) {
@@ -43,7 +43,7 @@ public class Peer {
         }
 
         if(id == -1){
-            System.out.println("Must specify peer's id number with -id <number>, exiting...");
+            System.out.println("Must specify servent's id number with -id <number>, exiting...");
             return;
         }
 
@@ -64,13 +64,13 @@ public class Peer {
     }
 
     //args as follows:
-    //java Peer -id <peer_id> -config <configFile>
+    //java Servent -id <peer_id> -config <configFile>
     public static void main(String args[]) {
         if(args.length < 4){
             System.out.println("required args: -id <peer_id> -config <configFile");
             return;
         }
-        new Peer(args);
+        new Servent(args);
     }
 
     private ArrayList<String> setUpFiles(String path) {
@@ -120,7 +120,7 @@ public class Peer {
     private void run() {
         // run the server listening at queries port
         // accepts queries
-        // spins off PeerQueryHandler thread
+        // spins off MessageQueryHandler thread
 
          try{
              ServerSocket queryWelcomeSocket = new ServerSocket(QUERYPORT);
@@ -158,9 +158,9 @@ public class Peer {
     }
 
     public void removeFile(String filename){
+        Debug.DEBUG("Successfully removed file: " + filename, "servent:removeFile");
         client.removeFile(filename);
     }
-
 
     private boolean setUpConfiguration(String configFile){
         try {
@@ -170,7 +170,7 @@ public class Peer {
             boolean current = false;
             while((line = br.readLine()) != null){
                 String[] words = line.trim().split("\\s+");
-                if(words[0].equals("<Peer") && words.length > 1 &&
+                if(words[0].equals("<Servent") && words.length > 1 &&
                     Integer.parseInt(words[1].substring(0, words[1].length()-1)) == id){
                     current = true;
                     continue;
@@ -179,7 +179,7 @@ public class Peer {
                 if(!current)
                     continue;
 
-                if(words[0].equals("</Peer>")){
+                if(words[0].equals("</Servent>")){
                     current = false;
                     continue;
                 }

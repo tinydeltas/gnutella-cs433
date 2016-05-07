@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 
 class QueryArray {
-    private Map<IDDescriptorPair, InetAddress> map;
+    private final Map<IDDescriptorPair, InetAddress> map;
     private final int maxEntries;
 
     public QueryArray(int maxEntries) {
@@ -38,8 +38,8 @@ class QueryArray {
 }
 
 class IDDescriptorPair {
-    UUID id = null;
-    int desc = -1;
+    private UUID id = null;
+    private int desc = -1;
 
     public IDDescriptorPair(UUID id, int descriptor) {
         this.id = id;
@@ -52,10 +52,9 @@ class IDDescriptorPair {
         }
         IDDescriptorPair pairOther = (IDDescriptorPair) other;
 
-        if (pairOther.id == null || pairOther.desc == -1)
-            return false;
+        return !(pairOther.id == null || pairOther.desc == -1) &&
+                id.equals(pairOther.id) && desc == pairOther.desc;
 
-        return id.equals(pairOther.id) && desc == pairOther.desc;
     }
 
     @Override public int hashCode() {

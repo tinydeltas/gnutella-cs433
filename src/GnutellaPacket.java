@@ -1,8 +1,6 @@
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,9 +12,6 @@ public class GnutellaPacket {
     private static final int HEADER_ID_SIZE = 16;
     private static final int HEADER_LENGTH_SIZE = 4;
     private static final int HEADER_SIZE = 5;
-    public static final int MAX_PACKET_SIZE = 128;  // bytes  //may bring these back if we decide we need them
-    //public static final int MAX_PAYLOAD_SIZE = MAX_PACKET_SIZE - HEADER_SIZE;  // bytes
-    public static final int MAX_TTL = 15;           // max hop count
 
     private UUID messageID;
     private int payloadDescriptor;
@@ -26,19 +21,19 @@ public class GnutellaPacket {
 
     public static final int QUERY = 128;     // 0x80 = Query (see section 3.2.3)
     public static final int HITQUERY = 129;  // 0x81 = QueryHits (see section 3.2.4)
-    public static final int OBTAIN = 2;
+    public static final int OBTAIN = 4;
     public static final int PUSH = 3;
-
-    // 0x00 = Ping (see section 3.2.1)
-    // 0x01 = Pong (see section 3.2.2)
-
-    // 0x40 = Push (see section 3.2.5)
+    public static final int BYE = 2;
 
     public static final int DEF_TTL = 3;
     public static final int DEF_HOPS = 3;
-
+    public static final int MAX_HOPS_TTL = 7;   // standard in protocol v 0.6
+    public static final int MAX_TTL = 15;
+    public static final int MAX_PAYLOAD_SIZE = 4 * 1024; // 4 kb; standard in protocol v. 0,6 not implemented yet
 
     public GnutellaPacket(UUID messageID, int payloadDescriptor, int ttl, int hops, byte[] payload){
+        if (hops != 0)
+            throw new IllegalArgumentException("Arguments passed to constructor of GnutellaPacket are invalid");
         if(!this.isValid(messageID, payloadDescriptor, ttl, hops, payload)){
             throw new IllegalArgumentException("Arguments passed to constructor of GnutellaPacket are invalid");
         }
@@ -52,8 +47,26 @@ public class GnutellaPacket {
         Debug.DEBUG("Creating new packet: " + this.toString(), "GnutellaPacket constructor");
     }
 
-    private boolean isValid(UUID messageID, int payloadDescriptor, int ttl, int hops, byte[] payload){
-        //TO-DO - actually check the arguments for validity
+    private static boolean isValid(UUID messageID, int payloadDescriptor, int ttl, int hops, byte[] payload){
+        // verify hops
+        if (ttl <= 0 || hops < 0 || ttl > MAX_TTL) {
+            Debug.DEBUG("TTL too big, or invalid values", "isValid");
+            return false;
+        }
+
+        // verify payloaddescriptor
+        else if (payloadDescriptor != QUERY &&
+                payloadDescriptor != HITQUERY &&
+                payloadDescriptor != OBTAIN &&
+                payloadDescriptor != PUSH) {
+            Debug.DEBUG("Payload descriptor invalid", "isValid");
+            return false;
+        }
+
+        if (payload.length <= 0 ){
+            Debug.DEBUG("Packet length invalid", "isValid");
+            return false;
+        }
         return true;
     }
 
@@ -63,8 +76,9 @@ public class GnutellaPacket {
      * @return A string representation of the packet.
      */
     public String toString() {
-	return "GnutellaPacket: " + this.messageID + "; " + this.payloadDescriptor + "; ttl: " + this.ttl + " hops: " + this.hops +
-            " contents: " + Utility.byteArrayToString(this.payload);
+	return "GnutellaPacket: " + this.messageID + ";\n" +
+            this.payloadDescriptor + "; ttl: " + this.ttl + " hops: " + this.hops +
+            "\npayload length:" + this.payload.length;
     }
 
     /**
@@ -139,24 +153,15 @@ public class GnutellaPacket {
     	byteStream.write(this.ttl);
     	byteStream.write(this.hops);
 
-        Debug.DEBUG("Message ID: " + this.messageID, "pack");
-        Debug.DEBUG("Descriptor: " + this.payloadDescriptor, "pack");
-        Debug.DEBUG("TTL: " + this.ttl, "pack");
-        Debug.DEBUG("Hops: " + this.hops, "pack");
-        Debug.DEBUG("Payload: " + Utility.byteArrayToString(this.payload), "pack");
-        Debug.DEBUG("Payload length: " + this.payload.length + "+" + HEADER_SIZE, "pack");
-
         int length = this.payload.length + HEADER_SIZE;
         byte[] lengthByteArray = (BigInteger.valueOf(length)).toByteArray();
         paddingLength = HEADER_LENGTH_SIZE - lengthByteArray.length;
-        Debug.DEBUG("Padding length: " + paddingLength, "pack");
         for(int i = 0; i < paddingLength; i++) {
             byteStream.write(0);
         }
 
         byteStream.write(lengthByteArray, 0, Math.min(lengthByteArray.length, 4));
         byteStream.write(this.payload, 0, this.payload.length);
-
     	return byteStream.toByteArray();
     }
 
@@ -170,7 +175,6 @@ public class GnutellaPacket {
         Debug.DEBUG("Unpacking packet ", "unpack");
 
         ByteArrayInputStream byteStream = new ByteArrayInputStream(packedPacket);
-
         byte[] seqByteArray = new byte[16];
         if(byteStream.read(seqByteArray, 0, 16) != 16) {
             return null;
@@ -180,11 +184,15 @@ public class GnutellaPacket {
     	int payloadDescriptor = byteStream.read();
     	int ttl = byteStream.read();
     	int hops = byteStream.read();
+        if (ttl + hops > MAX_HOPS_TTL) {
+            ttl = MAX_HOPS_TTL - hops;
+        }
 
         byte[] lengthByteArray = new byte[4];
     	if(byteStream.read(lengthByteArray, 0, 4) != 4) {
     	    return null;
     	}
+
     	int packetLength = (new BigInteger(lengthByteArray)).intValue();
 
         Debug.DEBUG("ID: " + messageID + "descriptor: " + payloadDescriptor +
@@ -199,6 +207,10 @@ public class GnutellaPacket {
             packetLength, "unpack");
     	    return null;
     	}
+
+        if (!isValid(messageID, payloadDescriptor, ttl, hops, payload)) {
+            return null;
+        }
 
     	try {
     	    return new GnutellaPacket(messageID, payloadDescriptor, ttl, hops, payload);

@@ -1,4 +1,3 @@
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,26 +7,22 @@ import java.net.Socket;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
-abstract class PeerHandler {
-    final Peer parent;
+abstract class MessageHandler {
+    final Servent parent;
     final Socket socket;
-    final ServerSocket welcomeSocket;
-    InputStream is = null;
-    DataOutputStream os = null;
+    private InputStream is = null;
 
-    PeerHandler(Peer parent, ServerSocket welcomeSocket, Socket socket) {
+    MessageHandler(Servent parent, ServerSocket welcomeSocket, Socket socket) {
         this.parent = parent;
-        this.welcomeSocket = welcomeSocket;
         this.socket = socket;
         try {
             this.is = socket.getInputStream();
-            this.os = new DataOutputStream(socket.getOutputStream());
         }  catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    void sendPacket(InetAddress to, int port, GnutellaPacket pkt) {
+    void forwardPacket(InetAddress to, int port, GnutellaPacket pkt) {
         Debug.DEBUG_F("Sending packet to" + to.getCanonicalHostName()
                 + ":" + pkt.toString(), "sendPacket");
 
@@ -43,23 +38,25 @@ abstract class PeerHandler {
         }
     }
 
-    void sendPacket(Socket s, GnutellaPacket pkt){
+    void sendRequestPacket(Socket s, GnutellaPacket pkt){
         try {
             DataOutputStream out =
                     new DataOutputStream(s.getOutputStream());
             out.write(ByteBuffer.allocate(4).putInt(pkt.pack().length).array());
             out.write(pkt.pack());
+            out.flush();
             //does NOT close socket
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    void sendPayload(Socket s, byte[] payload){
+    void sendPayload(byte[] payload){
         try{
-            //Socket s = new Socket(to, port);
-            DataOutputStream out = new DataOutputStream(s.getOutputStream());
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            out.writeInt(payload.length);
             out.write(payload);
+            out.flush();
             out.close();
         } catch(Exception e){
             e.printStackTrace();
@@ -69,10 +66,8 @@ abstract class PeerHandler {
     byte[] readFromSocket() {
         Debug.DEBUG("Attempting to read from socket: " + socket.toString(), "readFromSocket");
         byte[] request = null;
-        byte[] lenArr = null;
+        byte[] lenArr;
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
             lenArr = new byte[4];
             request = new byte[ 128 ];
             int bytesRead = 0;
@@ -92,8 +87,6 @@ abstract class PeerHandler {
                 sum += bytesRead;
                 System.out.println(bytesRead);
             }
-            //baos.write(request, 0, bytesRead);
-            //return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -101,7 +94,9 @@ abstract class PeerHandler {
         return request;
     }
 
-    public void sendPacket(int port, GnutellaPacket pkt) {
-        sendPacket(this.socket.getInetAddress(), port, pkt);
-    }
+// --Commented out by Inspection START (5/7/16, 12:36 AM):
+//    public void sendPacket(int port, GnutellaPacket pkt) {
+//        sendPacket(this.socket.getInetAddress(), port, pkt);
+//    }
+// --Commented out by Inspection STOP (5/7/16, 12:36 AM)
 }

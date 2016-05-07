@@ -1,7 +1,7 @@
 import java.net.*;
 
 public class QueryThread extends GnutellaThread {
-	public QueryThread(Peer p,ServerSocket welcomeSocket){
+	public QueryThread(Servent p, ServerSocket welcomeSocket){
         super(p, welcomeSocket);
 	}
 
@@ -9,7 +9,7 @@ public class QueryThread extends GnutellaThread {
 	public void serveRequest(Socket socket){
 		Debug.DEBUG("received request from" + socket.getInetAddress().toString(),
 				"QueryThread: serveRequest");
-		PeerQueryHandler handler = new PeerQueryHandler(this, socket);
+		MessageQueryHandler handler = new MessageQueryHandler(this, socket);
         InetAddress addr = socket.getInetAddress();
         byte[] request = handler.readFromSocket();
 		Debug.DEBUG("Received request from socket: ",

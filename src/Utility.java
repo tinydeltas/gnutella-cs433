@@ -45,4 +45,10 @@ class Utility {
 		return bb.array();
 	}
 
+// --Commented out by Inspection START (5/7/16, 12:36 AM):
+//	public static int byteArrayToInt(byte[] bytes) {
+//		return ByteBuffer.wrap(bytes).getInt();
+//	}
+// --Commented out by Inspection STOP (5/7/16, 12:36 AM)
+
 }
