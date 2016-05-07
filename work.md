@@ -1,7 +1,6 @@
 # todo 
 
 ##  Programming 
-- Fix client thread / how do we want to handle file requests? 
 - Possibly another API endpoint? (usable by application, for example) 
 - Extensions
         ^ Cache
@@ -9,7 +8,7 @@
         * Improve search efficiency
         Dynamic querying
         Querying routing protocol
-        Push
+        * Push
 
 ##  Testing
 - Add more debugging statements 

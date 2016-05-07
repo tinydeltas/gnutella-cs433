@@ -1,5 +1,6 @@
 <Servent 0>
 	ROOT: /artemis/home/classes/cs433/class/wang.lining.lw456/final-project/test-1
+	FIREWALL: yes
 	<Neighbors>
 		cobra.zoo.cs.yale.edu
 	</Neighbors>
@@ -7,6 +8,7 @@
 
 <Servent 1>
 	ROOT: /artemis/home/classes/cs433/class/wang.lining.lw456/final-project/test-2
+	FIREWALL: no
 	<Neighbors>
 	    turtle.zoo.cs.yale.edu
 	</Neighbors>
@@ -14,6 +16,8 @@
 
 <Servent 2>
 	ROOT: /artemis/home/classes/cs433/class/wang.lining.lw456/final-project/test-1
+	FIREWALL: no
 	<Neighbors>
+	    cobra.zoo.cs.yale.edu
 	</Neighbors>
 </Servent>

@@ -66,8 +66,6 @@ class MessageQueryHandler extends MessageHandler {
 //        network).  The connection will be closed as soon as the servent
 //        gets an EOF condition when reading, or when the "grace period"
 //        expires.
-
-
     }
 
     /// REGULAR QUERY HANDLING
@@ -79,7 +77,7 @@ class MessageQueryHandler extends MessageHandler {
         String file = Utility.byteArrayToString(pkt.getPayload());
         Debug.DEBUG("File to search: " + file, "onQuery");
 
-        if (fileExists(file)) {
+        if (Utility.fileExists(parent.conPath(file))) {
             Debug.DEBUG("File exists", "onQuery");
             GnutellaPacket respPkt = makeResponsePacket(pkt, file);
             forwardPacket(from, super.parent.getQUERYPORT(), respPkt);   // send packet upstream
@@ -92,11 +90,6 @@ class MessageQueryHandler extends MessageHandler {
         }
     }
 
-    private boolean fileExists(String file) {
-        File f = new File(parent.dirRoot + "/" + file);
-        return f.exists() && !f.isDirectory();
-    }
-
     private GnutellaPacket makeForwardPacket(GnutellaPacket pkt) {
 
         return new GnutellaPacket(pkt.getMessageID(),
@@ -107,8 +100,7 @@ class MessageQueryHandler extends MessageHandler {
     }
 
     private GnutellaPacket makeResponsePacket(GnutellaPacket pkt, String file) {
-        byte[] payload = Utility.stringToByteArray(parent.addr.getCanonicalHostName()
-                        + ";" + file);
+        byte[] payload = Utility.stringToByteArray(parent.getName() + ";" + file);
 
         return new GnutellaPacket(pkt.getMessageID(),
                 GnutellaPacket.HITQUERY,
@@ -118,7 +110,7 @@ class MessageQueryHandler extends MessageHandler {
     }
 
     private void forwardToNeighbors(InetAddress from, GnutellaPacket pkt) {
-        for (InetAddress n : parent.neighbors) {
+        for (InetAddress n : parent.getNeighbors()) {
             if (from.getCanonicalHostName().equals(n.getCanonicalHostName())) {
                 Debug.DEBUG("Skipping node that sent this", "forwardToNeighbors");
                 continue;
@@ -197,7 +189,7 @@ class MessageQueryHandler extends MessageHandler {
                 numRead += read;
             }
 
-            Debug.DEBUG("Read " + numRead + " bytes out of " + length, "retrieveFile");
+            System.out.println("\t[" + file + "] Downloaded " + numRead + " bytes out of " + length);
             if (length != numRead)
                 Debug.DEBUG_F("Read wrong length", "retrieveFile");
 

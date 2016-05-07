@@ -36,14 +36,16 @@ class MessageFileRequestHandler extends MessageHandler {
             Debug.DEBUG("No file requested", "onFileQuery");
         }
 
-        File f = new File(parent.dirRoot + "/" + file);
+        String fullpath = parent.conPath(file);
+
+        File f = new File(fullpath);
         if (!f.exists() || f.isDirectory()) {
             Debug.DEBUG("File doesn't exist", "onFileQuery");
             return;
         }
 
         try {
-            Path path = Paths.get(parent.dirRoot + "/" + file);
+            Path path = Paths.get(fullpath);
             byte[] fileBytes = Files.readAllBytes(path);
             Debug.DEBUG("writing " + fileBytes.length + "bytes to connection", "onFileQuery");
             sendPayload(fileBytes);

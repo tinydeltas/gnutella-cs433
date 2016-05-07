@@ -3,44 +3,31 @@ import java.net.*;
 import java.util.*;
 
 public class Servent {
-    private int id = -1;
-    public String dirRoot;
-    public QueryArray arr;
-    public InetAddress[] neighbors; // list of neighbors
-    private ArrayList<String> files = null;
-    public InetAddress addr = null;
-
+    private int id = -1;            // ID of this servent
+    public QueryArray arr;          // queries this servent has seen
     private final int THREADPOOLSIZE = 5;
-    private final int QUERYPORT = 7777;
-    private final int HTTPPORT = 5760;
+    public ServentConfig cfg;      // config containing other info
 
     //threads share access to the welcome socket. Requests for queries and
     //requests for HTTP GET have different welcome sockets
+
     private final QueryThread[] queryThreads = new QueryThread[THREADPOOLSIZE];
     private final FileThread[] httpThreads = new FileThread[THREADPOOLSIZE];
     public ClientThread client;
 
-    private boolean isUltrapeer = false;
-
     private Servent(String args[]){
-        try {
-            addr = InetAddress.getLocalHost();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        String filename = "";
+        String configPath = "";
+        String filesPath = "";
 
         for(int i = 0; i < args.length; i++){
             if(args[i].equals("-id") && i < args.length-1)
                 id = Integer.parseInt(args[i+1]);
+            else if (args[i].equals("-d"))
+                Debug.setDebug(true);
             else if(args[i].equals("-config") && i < args.length-1)
-                filename = args[i+1];
+                configPath = args[i+1];
             else if (args[i].equals("-f") && i < args.length - 1) {
-                if ((files = setUpFiles(args[i+1])) == null) {
-                    System.out.println("Failed to set up request path");
-                    return;
-                }
+                filesPath = args[i+1];
             }
         }
 
@@ -48,20 +35,14 @@ public class Servent {
             System.out.println("Must specify servent's id number with -id <number>, exiting...");
             return;
         }
-
-        if(!setUpConfiguration(filename)){
+        try {
+            cfg = new ServentConfig(this, configPath, filesPath);
+        } catch (Exception e){
             System.out.println("Configuration failed, exiting...");
             return;
         }
 
-        System.out.println("ID: " + id);
-        System.out.println("ROOT: " + dirRoot);
-        System.out.println("Neighbors: ");
-        for(InetAddress ia : neighbors){
-            System.out.print("\t" + ia);
-        }
-
-        arr = new QueryArray(100);
+        arr = new QueryArray(1000);
         run();
     }
 
@@ -75,35 +56,16 @@ public class Servent {
         new Servent(args);
     }
 
-    private ArrayList<String> setUpFiles(String path) {
-        File f = new File(path);
-        ArrayList<String> filesToRequest = new ArrayList<String>();
-        if (!f.exists() || f.isDirectory())
-            return null;
-
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(path));
-            String file;
-            while ((file = reader.readLine()) != null) {
-                filesToRequest.add(file);
-            }
-            reader.close();
-        } catch (Exception e) {
-            System.err.format("Exception occurred while reading: %s", path);
-            e.printStackTrace();
-            System.exit(1);
-        }
-        return filesToRequest;
-    }
-
     public int getHTTPPORT() {
-        return HTTPPORT;
+        return cfg.HTTPPORT;
     }
-
     public int getQUERYPORT() {
-        return QUERYPORT;
+        return cfg.QUERYPORT;
     }
 
+    //-------------------------------------------------------
+    // Interfacing with the array
+    //-------------------------------------------------------
     public boolean containsID(UUID messageID, int desc) {
         return arr.contains(messageID, desc);
     }
@@ -118,6 +80,30 @@ public class Servent {
         arr.add(messageID, desc, upstreamIP);
     }
 
+    //-------------------------------------------------------
+    // Misc helper methods
+    //-------------------------------------------------------
+
+    public void removeFile(String filename){
+        Debug.DEBUG("Successfully removed file: " + filename, "servent:removeFile");
+        client.removeFile(filename);
+    }
+
+    public ArrayList<InetAddress> getNeighbors() {
+        return cfg.neighbors;
+    }
+
+    public int getID() {
+        return id;
+    }
+
+    public String getName() {
+        return cfg.addr.getCanonicalHostName();
+    }
+
+    public String conPath(String file) {
+        return cfg.dirRoot + file;
+    }
 
     private void run() {
         // run the server listening at queries port
@@ -125,8 +111,8 @@ public class Servent {
         // spins off MessageQueryHandler thread
 
          try{
-             ServerSocket queryWelcomeSocket = new ServerSocket(QUERYPORT);
-             ServerSocket httpWelcomeSocket = new ServerSocket(HTTPPORT);
+             ServerSocket queryWelcomeSocket = new ServerSocket(cfg.QUERYPORT);
+             ServerSocket httpWelcomeSocket = new ServerSocket(cfg.HTTPPORT);
 
             for(int i = 0; i < THREADPOOLSIZE; i++) {
                 queryThreads[i] = new QueryThread(this, queryWelcomeSocket); //TO-DO need the parameters
@@ -136,11 +122,9 @@ public class Servent {
                 httpThreads[i].start();
             }
 
-            if(files == null)
-                files = new ArrayList<String>();
+            client = new ClientThread(this);
+            client.start();
 
-             client = new ClientThread(this, files);
-             client.start();
 
         } catch(Exception e){
             e.printStackTrace();
@@ -156,54 +140,7 @@ public class Servent {
             System.out.println("All threads finished. Exit");
         } catch (Exception e) {
             System.out.println("Join errors");
-        }
-    }
-
-    public void removeFile(String filename){
-        Debug.DEBUG("Successfully removed file: " + filename, "servent:removeFile");
-        client.removeFile(filename);
-    }
-
-    private boolean setUpConfiguration(String configFile){
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(configFile));
-            ArrayList<InetAddress> arrlist = new ArrayList<InetAddress>();
-            String line;
-            boolean current = false;
-            while((line = br.readLine()) != null){
-                String[] words = line.trim().split("\\s+");
-                if(words[0].equals("<Servent") && words.length > 1 &&
-                    Integer.parseInt(words[1].substring(0, words[1].length()-1)) == id){
-                    current = true;
-                    continue;
-                }
-
-                if(!current)
-                    continue;
-
-                if(words[0].equals("</Servent>")){
-                    current = false;
-                    continue;
-                }
-
-                if(words[0].equals("ROOT:")){
-                    dirRoot = words[1];
-                    continue;
-                }
-
-                //could do more stuff here if config file held more info, but for now just ignore it
-                if(words[0].equals("<Neighbors>") || words[0].equals("</Neighbors>"))
-                    continue;
-
-                System.out.println("try to getByName: " + words[0]);
-                arrlist.add(InetAddress.getByName(words[0]));
-            }
-
-            neighbors = arrlist.toArray(new InetAddress[arrlist.size()]);
-        } catch(Exception e){
             e.printStackTrace();
-            return false;
         }
-        return true;
     }
 }

@@ -79,7 +79,6 @@ abstract class MessageHandler {
                 sum += bytesRead;
             }
             int messageLen = new BigInteger(lenArr).intValue();
-            System.out.println("messageLen: " + messageLen);
 
             bytesRead = 0;
             sum = 0;

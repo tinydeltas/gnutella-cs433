@@ -14,12 +14,16 @@ class ClientThread extends Thread {
     private final int NUMTHREADS = 8;
     private final int TIMEOUT = 2;
 
-    public ClientThread(Servent p, ArrayList<String> files){
+    public ClientThread(Servent p) {
         this.servent = p;
-        this.files = files;
+        ClientThread.files = servent.cfg.getFiles();
     }
 
     public void run(){
+        // first it tries to go through all the files in
+        // in the given request file
+        broadcast();
+
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String nextLine;
 
@@ -39,14 +43,14 @@ class ClientThread extends Thread {
                 closeConnection();
             }
             for (String word : words) {
+                if (word.equals("\n"))
+                    continue;
                 Debug.DEBUG("Trying to get file: " + word, "ClientThread: run");
                 files.add(word);
             }
 
             printFiles();
-
-            for (int i = 0; i < files.size(); i++)
-                broadcast(files.get(i));
+            broadcast();
         }
     }
 
@@ -64,19 +68,21 @@ class ClientThread extends Thread {
         }
     }
 
-    private void broadcast(String filename) {
-        if(servent.neighbors == null)
+    private void broadcast() {
+        ArrayList<InetAddress> neighbors = servent.getNeighbors();
+        if(neighbors == null || files.size() == 0)
             return;
-
-        System.out.println("BROADCAST: " + filename);
 
         ExecutorService executor = Executors.newFixedThreadPool(NUMTHREADS);
         Collection threadlist = new LinkedList<Callable<BroadcastThread>>();
 
-        for (InetAddress n : servent.neighbors) {
-            System.out.println("Broadcasting " + filename + " to " + n);
-            BroadcastThread thr = new BroadcastThread(servent, n, filename, files);
-            threadlist.add(thr);
+        for (int i = 0; i < files.size(); i++) {
+            String filename = files.get(i);
+            for (InetAddress n : neighbors) {
+                System.out.println("\t[ " + filename + "] ---> " + n.getCanonicalHostName());
+                BroadcastThread thr = new BroadcastThread(servent, n, filename, files);
+                threadlist.add(thr);
+            }
         }
 
         Debug.DEBUG("Finished adding all threads " + threadlist.size(), "broadcast");
@@ -85,9 +91,9 @@ class ClientThread extends Thread {
             futures = executor.invokeAll(threadlist, TIMEOUT, TimeUnit.SECONDS);
             for (Future<?> future: futures) {
                 future.get();
-                if (future.isDone())
-                    Debug.DEBUG("Task completed", "broadcast");
+                if (future.isDone()) Debug.DEBUG("Task completed", "broadcast");
             }
+            System.out.println("\tAll tasks successfully completed");
         } catch(InterruptedException e){
             e.printStackTrace();
         } catch (Exception e) {
@@ -125,14 +131,12 @@ class BroadcastThread implements Callable {
         sendQuery();
 
         //wait until the file no longer is being looked for (means it was downloaded successfully)
-        //if timeout, assume failure and re-broadcast
         Debug.DEBUG("Function finished", "call");
-        synchronized (servent.client.files) {
-            while (!servent.client.files.isEmpty()) {
+        synchronized (ClientThread.files) {
+            while (!ClientThread.files.isEmpty()) {
                 try {
-                    servent.client.files.wait();
-                }
-                catch (InterruptedException ex) {
+                    ClientThread.files.wait();
+                } catch (InterruptedException ex) {
                     System.out.println("Waiting for pool interrupted.");
                     ex.printStackTrace();
                 }

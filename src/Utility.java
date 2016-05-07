@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -43,6 +44,11 @@ class Utility {
 		bb.putLong(uuid.getMostSignificantBits());
 		bb.putLong(uuid.getLeastSignificantBits());
 		return bb.array();
+	}
+
+	public static boolean fileExists(String file) {
+		File f = new File(file);
+		return f.exists() && !f.isDirectory();
 	}
 
 // --Commented out by Inspection START (5/7/16, 12:36 AM):
