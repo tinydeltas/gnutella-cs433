@@ -3,6 +3,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.UUID;
 
+/**
+ * Handles queries passing through the servent
+ */
 class MessageQueryHandler extends MessageHandler {
 
     public MessageQueryHandler(GnutellaThread thread, Socket socket) {

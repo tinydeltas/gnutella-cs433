@@ -3,6 +3,10 @@ import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.UUID;
 
+
+/**
+ * Similar to TransportPacket in the TCP project
+ */
 public class GnutellaPacket {
     private static final int HEADER_ID_SIZE = 16;
     private static final int HEADER_LENGTH_SIZE = 4;
@@ -50,18 +54,19 @@ public class GnutellaPacket {
 //        }
 //
 //        // verify payloaddescriptor
-//        else if (payloadDescriptor != QUERY &&
-//                payloadDescriptor != HITQUERY &&
-//                payloadDescriptor != OBTAIN &&
-//                payloadDescriptor != PUSH) {
-//            Debug.DEBUG("Payload descriptor invalid", "isValid");
-//            return false;
-//        }
-//
-//        if (payload.length <= 0 ){
-//            Debug.DEBUG("Packet length invalid", "isValid");
-//            return false;
-//        }
+        if (payloadDescriptor != QUERY &&
+                payloadDescriptor != HITQUERY &&
+                payloadDescriptor != OBTAIN &&
+                payloadDescriptor != PUSH &&
+                payloadDescriptor != BYE) {
+            Debug.DEBUG("Payload descriptor invalid", "isValid");
+            return false;
+        }
+
+        if (payload.length <= 0 ){
+            Debug.DEBUG("Packet length invalid", "isValid");
+            return false;
+        }
         return true;
     }
 
