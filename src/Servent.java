@@ -17,8 +17,10 @@ public class Servent {
     //threads share access to the welcome socket. Requests for queries and
     //requests for HTTP GET have different welcome sockets
     private final QueryThread[] queryThreads = new QueryThread[THREADPOOLSIZE];
-    private final HTTPThread[] httpThreads = new HTTPThread[THREADPOOLSIZE];
+    private final FileThread[] httpThreads = new FileThread[THREADPOOLSIZE];
     public ClientThread client;
+
+    private boolean isUltrapeer = false;
 
     private Servent(String args[]){
         try {
@@ -130,7 +132,7 @@ public class Servent {
                 queryThreads[i] = new QueryThread(this, queryWelcomeSocket); //TO-DO need the parameters
                 queryThreads[i].start();
 
-                httpThreads[i] = new HTTPThread(this, httpWelcomeSocket);
+                httpThreads[i] = new FileThread(this, httpWelcomeSocket);
                 httpThreads[i].start();
             }
 

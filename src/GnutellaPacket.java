@@ -3,11 +3,7 @@ import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.UUID;
 
-/**
- * <pre>
- * Packet defines the Fishnet packet headers and some constants.
- * </pre>
- */
+
 public class GnutellaPacket {
     private static final int HEADER_ID_SIZE = 16;
     private static final int HEADER_LENGTH_SIZE = 4;

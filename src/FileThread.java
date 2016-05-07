@@ -1,7 +1,7 @@
 import java.net.*;
 
-public class HTTPThread extends GnutellaThread{
-	public HTTPThread(Servent p, ServerSocket welcomeSocket){
+public class FileThread extends GnutellaThread{
+	public FileThread(Servent p, ServerSocket welcomeSocket){
 		super(p, welcomeSocket);
 	}
 
@@ -9,7 +9,7 @@ public class HTTPThread extends GnutellaThread{
 	public void serveRequest(Socket socket){
         MessageFileRequestHandler handler = new MessageFileRequestHandler(this, socket);
         InetAddress addr = socket.getInetAddress();
-		Debug.DEBUG("Received file request", "HTTPThread serveRequest");
+		Debug.DEBUG("Received file request", "FileThread serveRequest");
         byte[] request = handler.readFromSocket();
         handler.onPacketReceive(addr, request);
 	}
