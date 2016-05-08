@@ -38,9 +38,6 @@ class ClientThread extends Thread {
             }
 
             String[] words = nextLine.trim().split("\\s+");
-            if (words.length == 0 && words[0].toUpperCase().equals("BYE")) {
-                closeConnection();
-            }
             for (String word : words) {
                 if (word.equals("\n"))
                     continue;
@@ -50,15 +47,18 @@ class ClientThread extends Thread {
 
             printFiles();
             broadcast();
+
+            if (words.length == 0 && words[0].toUpperCase().equals("BYE")) {
+                return;
+            }
         }
     }
 
-    // todo
-    private void closeConnection() {
-
-    }
-
     private void printFiles() {
+        if (files.get(0).toUpperCase().equals("BYE")) {
+            System.out.println("BYE message: " + files.subList(1, files.size()).toString());
+            return;
+        }
         if(files != null){
             System.out.print("Request files: ");
             for(String s : files)
