@@ -25,32 +25,54 @@ class MessageFileRequestHandler extends MessageHandler {
             case GnutellaPacket.OBTAIN:
                 onFileQuery(pkt, from);
                 break;
+            case GnutellaPacket.PUSH:
+                onPush(pkt, from);
             default:
                 System.out.println("Unrecognized descriptor");
                 break;
         }
     }
 
-    private void onFileQuery(GnutellaPacket pkt, InetAddress from) {
-        Debug.DEBUG("Responding to file query", "onFileQuery");
-
-        String file = Utility.byteArrayToString(pkt.getPayload());
-        if (file == null) {
-            Debug.DEBUG("No file requested", "onFileQuery");
-        }
-
-        String fullpath = parent.conPath(file);
-
-        File f = new File(fullpath);
-        if (!f.exists() || f.isDirectory()) {
-            Debug.DEBUG("File doesn't exist", "onFileQuery");
+    private void onPush(GnutellaPacket pkt, InetAddress from) {
+        PushMessage msg = PushMessage.unpack(pkt.getPayload());
+        if (!msg.getIdentifier().equals(parent.getIdentifier())) {
+            Debug.DEBUG("Removing weird push message", "onPush");
             return;
         }
 
+        int fileIndex = msg.getFileIndex();
+        if (!parent.fileTable.containsKey(fileIndex) ||
+                parent.fileTable.get(fileIndex) == null) {
+            Debug.DEBUG("Haven't sent HITQUERY for file, returning", "onPush");
+            return;
+        }
+
+        // otherwise send the file.
+        sendFile(parent.fileTable.get(fileIndex));
+    }
+
+    private void onFileQuery(GnutellaPacket pkt, InetAddress from) {
+        String file = parent.conPath(Utility.byteArrayToString(pkt.getPayload()));
+        Debug.DEBUG("Responding to file query " + file, "onFileQuery");
+        if (file == null || !Utility.fileExists(file)) {
+            Debug.DEBUG("File not found", "onFileQuery");
+            return;
+        }
+
+        File f = new File(file);
+        Debug.DEBUG("Getting as key: " + f.hashCode(), "onFileQuery");
+        if (!parent.fileTable.containsKey(f.hashCode())) {
+            Debug.DEBUG("File request not seen", "onFileQuery");
+            return;
+        }
+        sendFile(f);
+    }
+
+    private void sendFile(File f) {
         try {
-            Path path = Paths.get(fullpath);
+            Path path = Paths.get(f.getAbsolutePath());
             byte[] fileBytes = Files.readAllBytes(path);
-            Debug.DEBUG("writing " + fileBytes.length + "bytes to connection", "onFileQuery");
+            Debug.DEBUG("Atttempting to write " + fileBytes.length + "bytes to connection", "onFileQuery");
             sendPayload(fileBytes);
             Debug.DEBUG("Successfully wrote all bytes to connection", "onFileQuery");
         } catch (Exception e) {
@@ -58,6 +80,7 @@ class MessageFileRequestHandler extends MessageHandler {
         } finally {
             cleanUp();
         }
+
     }
 
     private void cleanUp() {

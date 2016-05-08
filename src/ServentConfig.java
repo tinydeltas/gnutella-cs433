@@ -3,9 +3,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class ServentConfig {
     Servent parent;
+    public UUID identifier;
     public String dirRoot;          // directory root where this servent stores its files
     public boolean firewall;        // if it's behind a firewall, so push needed
     public ArrayList<InetAddress> neighbors; // list of neighbors
@@ -20,6 +22,7 @@ public class ServentConfig {
     public ServentConfig(Servent servent, String configFile, String filePath) throws Exception{
         parent = servent;
         addr = InetAddress.getLocalHost();
+        identifier = UUID.randomUUID();
         neighbors = new ArrayList<InetAddress>();
 
         BufferedReader br = new BufferedReader(new FileReader(configFile));
@@ -42,6 +45,8 @@ public class ServentConfig {
                 current = false;
             } else if(words[0].equals("ROOT:")){
                 dirRoot = words[1];
+                if (!dirRoot.endsWith("/"))
+                    dirRoot += "/";
             } else if(words[0].equals("FIREWALL:")) {
                 firewall = words[1].equals("yes");
             } else {
@@ -91,6 +96,7 @@ public class ServentConfig {
         debug.add("[ROOT] " + dirRoot);
         debug.add("[FIREWALL] " + firewall);
         debug.add("[Neighbors] ");
+        debug.add("[ADDR[ " + addr.toString());
 
         for(InetAddress ia : neighbors){
             debug.add("\t" + ia);

@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -11,6 +12,7 @@ class MessageQueryHandler extends MessageHandler {
     public MessageQueryHandler(GnutellaThread thread, Socket socket) {
         super(thread.servent, thread.welcomeSocket, socket);
         Debug.DEBUG("Creating new handler for " + socket.toString(), "MessageQueryHandler constructor");
+
     }
 
     public void onPacketReceive(InetAddress from, byte[] packet) {
@@ -77,12 +79,16 @@ class MessageQueryHandler extends MessageHandler {
 
         parent.addMessageID(pkt.getMessageID(), GnutellaPacket.QUERY, from);
 
-        String file = Utility.byteArrayToString(pkt.getPayload());
+        String uri = Utility.byteArrayToString(pkt.getPayload());
+        String file = parent.conPath(uri);
         Debug.DEBUG("File to search: " + file, "onQuery");
 
-        if (Utility.fileExists(parent.conPath(file))) {
+        if (Utility.fileExists(file)) {
             Debug.DEBUG("File exists", "onQuery");
-            GnutellaPacket respPkt = makeResponsePacket(pkt, file);
+            File f = new File(file);
+            parent.fileTable.put(f.hashCode(), f);
+            Debug.DEBUG("Putting as key: " + f.hashCode(), "onQuery");
+            GnutellaPacket respPkt = makeResponsePacket(pkt, uri);
             forwardPacket(from, super.parent.getQUERYPORT(), respPkt);   // send packet upstream
         }
 

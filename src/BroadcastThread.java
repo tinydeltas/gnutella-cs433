@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-class BroadcastThread implements Callable {
+class BroadcastThread implements Callable<Thread>  {
     private final Servent servent;
     private final InetAddress neighbor;
     private final String filename;
@@ -17,7 +17,7 @@ class BroadcastThread implements Callable {
         this.filename = filename;
     }
 
-    public String call() {
+    public Thread call() {
         Debug.DEBUG("Running broadcast thread", "call");
         if (neighbor == null || filename == null || servent == null)
             return null;
@@ -44,7 +44,7 @@ class BroadcastThread implements Callable {
     }
 
     private void sendQuery(String filename, InetAddress neighbor) {
-        Debug.DEBUG("Sending query for " + neighbor, "sendQuery");
+        System.out.println("Sending query for " + neighbor);
 
         UUID descriptorID = UUID.randomUUID();
         servent.arr.add(descriptorID, GnutellaPacket.QUERY, null);

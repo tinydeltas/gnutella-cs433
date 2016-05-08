@@ -5,6 +5,7 @@ import java.util.*;
 public class Servent {
     private int id = -1;            // ID of this servent
     public QueryArray arr;          // queries this servent has seen
+    public HashMap<Integer, File> fileTable;   // files this servent has responded with
     private final int THREADPOOLSIZE = 5;
     public ServentConfig cfg;      // config containing other info
 
@@ -43,6 +44,7 @@ public class Servent {
         }
 
         arr = new QueryArray(1000);
+        fileTable = new HashMap<Integer, File>();
         run();
     }
 
@@ -95,6 +97,10 @@ public class Servent {
 
     public int getID() {
         return id;
+    }
+
+    public UUID getIdentifier() {
+        return cfg.identifier;
     }
 
     public String getName() {

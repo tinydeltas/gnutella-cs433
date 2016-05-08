@@ -12,7 +12,7 @@ class ClientThread extends Thread {
     private final Servent servent;
     public static ArrayList<String> files;
     private final int NUMTHREADS = 8;
-    private final int TIMEOUT = 2;
+    private final long TIMEOUT = 5;
 
     public ClientThread(Servent p) {
         this.servent = p;
@@ -85,12 +85,13 @@ class ClientThread extends Thread {
         }
 
         Debug.DEBUG("Finished adding all threads " + threadlist.size(), "broadcast");
-        List<Future<?>> futures;
+        List futures;
         try{
             futures = executor.invokeAll(threadlist, TIMEOUT, TimeUnit.SECONDS);
-            for (Future<?> future: futures) {
-                future.get();
-                if (future.isDone()) Debug.DEBUG("Task completed", "broadcast");
+            for (Object future: futures) {
+                ((Future) future).get();
+                if (((Future) future).isDone())
+                    Debug.DEBUG("Task completed", "broadcast");
             }
             System.out.println("\tAll tasks successfully completed");
         } catch(InterruptedException e){

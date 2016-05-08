@@ -23,8 +23,8 @@ abstract class MessageHandler {
     }
 
     void forwardPacket(InetAddress to, int port, GnutellaPacket pkt) {
-        Debug.DEBUG_F("Sending packet to" + to.getCanonicalHostName()
-                + ":" + pkt.toString(), "sendPacket");
+        Debug.DEBUG_F("Sending packet to" + to.toString()
+                + ":" + port + ":" + pkt.toString(), "forwardPacket");
 
         try {
             Socket s = new Socket(to, port);
@@ -39,6 +39,7 @@ abstract class MessageHandler {
     }
 
     void sendRequestPacket(Socket s, GnutellaPacket pkt){
+        Debug.DEBUG_F("Sending debug packet", "sendRequestPacket");
         try {
             DataOutputStream out =
                     new DataOutputStream(s.getOutputStream());
