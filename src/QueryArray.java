@@ -1,8 +1,6 @@
 /* QueryArray
-*
 *  Maps from a message ID to an InetAddress.  Used by a servent to 
 *  return a hitquery response to the appropriate neighboring servent.
-*  
 */
 
 import java.net.InetAddress;
