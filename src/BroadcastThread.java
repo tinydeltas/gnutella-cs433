@@ -72,4 +72,12 @@ class BroadcastThread implements Callable<Thread>  {
             e.printStackTrace();
         }
     }
+
+    private GnutellaPacket conByePacket(String message) {
+        return new GnutellaPacket(UUID.randomUUID(),
+                GnutellaPacket.BYE,
+                1,
+                GnutellaPacket.DEF_HOPS,
+                Utility.stringToByteArray(message));
+    }
 }

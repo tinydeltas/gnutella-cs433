@@ -49,28 +49,15 @@ class MessageQueryHandler extends MessageHandler {
     // todo
     private void onBye(InetAddress from, GnutellaPacket pkt) {
         // see
-//        A Bye packet MUST be sent with TTL=1 (to avoid accidental propagation
-//        by an unaware servent), and hops=0 (of course).
-//
-//        A servent receiving a Bye message MUST close he connection
-//        immediately. The servent that sent the packet MUST wait a few
-//        seconds for the remote host to close the connection before closing
-//        it.  Other data MUST NOT be sent after the Bye message.  Make sure
-//        any send queues are cleared.
-//
-//                The servent that sent by Bye message MAY also call shutdown() with
-//        'how' set to 1 after sending the Bye message, partially closing the
-//        connection.  Doing a full close() immediately after sending the Bye
-//        messages would prevent the remote host from possibly seeing the Bye
-//        message.
-//
-//                After sending the Bye message, and during the "grace period" when
-//        we don't immediately close the connection, the servent MUST read
-//        all incoming messages, and drop them unless they are Query Hits
-//        or Push, which MAY still be forwarded (it would be nice to the
-//        network).  The connection will be closed as soon as the servent
-//        gets an EOF condition when reading, or when the "grace period"
-//        expires.
+        // remove from set of neighbors
+        String message = Utility.byteArrayToString(pkt.getPayload());
+        System.out.println("BYE message: " + message);
+        for (InetAddress n : parent.getNeighbors()) {
+            if (n.equals(from)) {
+                parent.getNeighbors().remove(n);
+            }
+        }
+
     }
 
     /// REGULAR QUERY HANDLING
