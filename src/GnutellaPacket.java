@@ -192,7 +192,6 @@ public class GnutellaPacket {
     	if(byteStream.read(lengthByteArray, 0, 4) != 4) {
     	    return null;
     	}
-
     	int packetLength = (new BigInteger(lengthByteArray)).intValue();
 
         Debug.DEBUG("ID: " + messageID + "descriptor: " + payloadDescriptor +

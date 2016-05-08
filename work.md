@@ -8,7 +8,6 @@
         * Improve search efficiency
         Dynamic querying
         Querying routing protocol
-        * Push
 
 ##  Testing
 - Add more debugging statements 

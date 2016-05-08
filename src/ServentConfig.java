@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class ServentConfig {
@@ -12,6 +13,7 @@ public class ServentConfig {
     public boolean firewall;        // if it's behind a firewall, so push needed
     public ArrayList<InetAddress> neighbors; // list of neighbors
     public ArrayList<String> filesToRequest;
+    public HashMap<InetAddress, Boolean> isFirewalled;
 
     public InetAddress addr = null;             // InetAddress of this servent
     private boolean isUltrapeer = false;
@@ -24,6 +26,7 @@ public class ServentConfig {
         addr = InetAddress.getLocalHost();
         identifier = UUID.randomUUID();
         neighbors = new ArrayList<InetAddress>();
+        isFirewalled = new HashMap<InetAddress, Boolean>();
 
         BufferedReader br = new BufferedReader(new FileReader(configFile));
         String line;
@@ -47,11 +50,13 @@ public class ServentConfig {
                 dirRoot = words[1];
                 if (!dirRoot.endsWith("/"))
                     dirRoot += "/";
-            } else if(words[0].equals("FIREWALL:")) {
-                firewall = words[1].equals("yes");
             } else {
                 System.out.println("Attempting to get neighbor: " + words[0]);
-                neighbors.add(InetAddress.getByName(words[0]));
+                InetAddress addr = InetAddress.getByName(words[0]);
+                neighbors.add(addr);
+                if (words.length > 0) {
+                    isFirewalled.put(addr, words[1].toUpperCase().equals("YES"));
+                }
             }
         }
 

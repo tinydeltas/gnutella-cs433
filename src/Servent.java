@@ -103,6 +103,18 @@ public class Servent {
         return cfg.identifier;
     }
 
+    public boolean isFirewalled(InetAddress addr) {
+        if (addr == null)
+            return false;
+        if (!cfg.isFirewalled.containsKey(addr))
+            return false;
+        return cfg.isFirewalled.get(addr);
+    }
+
+    public InetAddress getAddress() {
+        return cfg.addr;
+    }
+
     public String getName() {
         return cfg.addr.getCanonicalHostName();
     }

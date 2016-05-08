@@ -33,8 +33,10 @@ class MessageFileRequestHandler extends MessageHandler {
         }
     }
 
+    // todo: fix so you exchange UUID identifiers as well
     private void onPush(GnutellaPacket pkt, InetAddress from) {
         PushMessage msg = PushMessage.unpack(pkt.getPayload());
+        Debug.DEBUG(msg.toString(), "onPush");
         if (!msg.getIdentifier().equals(parent.getIdentifier())) {
             Debug.DEBUG("Removing weird push message", "onPush");
             return;
@@ -43,7 +45,7 @@ class MessageFileRequestHandler extends MessageHandler {
         int fileIndex = msg.getFileIndex();
         if (!parent.fileTable.containsKey(fileIndex) ||
                 parent.fileTable.get(fileIndex) == null) {
-            Debug.DEBUG("Haven't sent HITQUERY for file, returning", "onPush");
+            Debug.DEBUG("Haven't sent HITQUERY for file " + fileIndex, "onPush");
             return;
         }
 
@@ -52,20 +54,20 @@ class MessageFileRequestHandler extends MessageHandler {
     }
 
     private void onFileQuery(GnutellaPacket pkt, InetAddress from) {
-        String file = parent.conPath(Utility.byteArrayToString(pkt.getPayload()));
+        String uri = Utility.byteArrayToString(pkt.getPayload());
+        String file = parent.conPath(uri);
         Debug.DEBUG("Responding to file query " + file, "onFileQuery");
         if (file == null || !Utility.fileExists(file)) {
             Debug.DEBUG("File not found", "onFileQuery");
             return;
         }
 
-        File f = new File(file);
-        Debug.DEBUG("Getting as key: " + f.hashCode(), "onFileQuery");
-        if (!parent.fileTable.containsKey(f.hashCode())) {
+        Debug.DEBUG("Hashcode for " + uri + " is" + uri.hashCode(), "onFileQuery");
+        if (!parent.fileTable.containsKey(uri.hashCode())) {
             Debug.DEBUG("File request not seen", "onFileQuery");
             return;
         }
-        sendFile(f);
+        sendFile(new File(file));
     }
 
     private void sendFile(File f) {

@@ -1,5 +1,8 @@
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
@@ -49,6 +52,23 @@ class Utility {
 	public static boolean fileExists(String file) {
 		File f = new File(file);
 		return f.exists() && !f.isDirectory();
+	}
+
+	public static void writeNByteInt(ByteArrayOutputStream byteStream, int val, int n) {
+		byte[] byteArray = (BigInteger.valueOf(val)).toByteArray();
+		int paddingLength = n - byteArray.length;
+		for(int i = 0; i < paddingLength; i++) {
+			byteStream.write(0);
+		}
+		byteStream.write(byteArray, 0, Math.min(byteArray.length, n));
+	}
+
+	public static int readNByteInt(ByteArrayInputStream byteStream, int n) {
+		byte[] lengthByteArray = new byte[n];
+		if(byteStream.read(lengthByteArray, 0, n) != n) {
+			return -1;
+		}
+		return (new BigInteger(lengthByteArray)).intValue();
 	}
 
 // --Commented out by Inspection START (5/7/16, 12:36 AM):

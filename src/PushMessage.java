@@ -16,7 +16,7 @@ public class PushMessage {
     public PushMessage(UUID identifier, int fileIndex, InetAddress addr, int port) {
         if (!this.isValid(identifier, fileIndex, addr, port))
             throw new IllegalArgumentException("Invalid arguments");
-
+        Debug.DEBUG("fileIndex: " + fileIndex, "PushMessage constructor");
         this.identifier = identifier;
         this.fileIndex = fileIndex;
         this.addr = addr;
@@ -54,16 +54,16 @@ public class PushMessage {
         for(int i = 0; i < paddingLength ; i++) {
             byteStream.write(0);
         }
-        byteStream.write(seqByteArray, 0, Math.min(seqByteArray.length, 16));
+        byteStream.write(seqByteArray, 0, Math.min(seqByteArray.length, HEADER_ID_SIZE));
 
-        byteStream.write(fileIndex);
         try {
+            Utility.writeNByteInt(byteStream, fileIndex, 4);
             byteStream.write(addr.getAddress());
+            Utility.writeNByteInt(byteStream, port, 2);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        byteStream.write(port);
         return byteStream.toByteArray();
 
     }
@@ -76,13 +76,13 @@ public class PushMessage {
         if(byteStream.read(seqByteArray, 0, 16) != 16) {
             return null;
         }
-        UUID identifier = Utility.byteArrayToUUID(seqByteArray);
 
-        int fileIndex = byteStream.read();
+        UUID identifier = Utility.byteArrayToUUID(seqByteArray);
+        int fileIndex = Utility.readNByteInt(byteStream, 4);
 
         byte[] ip = new byte[4];
         byteStream.read(ip, 0, 4);
-        int port = byteStream.read();
+        int port = Utility.readNByteInt(byteStream, 2);
 
         InetAddress addr = null;
         try {

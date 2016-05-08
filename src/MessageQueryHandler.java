@@ -84,10 +84,10 @@ class MessageQueryHandler extends MessageHandler {
         Debug.DEBUG("File to search: " + file, "onQuery");
 
         if (Utility.fileExists(file)) {
-            Debug.DEBUG("File exists", "onQuery");
+            Debug.DEBUG("File exists: " + uri, "onQuery");
             File f = new File(file);
-            parent.fileTable.put(f.hashCode(), f);
-            Debug.DEBUG("Putting as key: " + f.hashCode(), "onQuery");
+            parent.fileTable.put(uri.hashCode(), f);
+            Debug.DEBUG("Putting as key: " + uri.hashCode(), "onQuery");
             GnutellaPacket respPkt = makeResponsePacket(pkt, uri);
             forwardPacket(from, super.parent.getQUERYPORT(), respPkt);   // send packet upstream
         }
@@ -109,7 +109,8 @@ class MessageQueryHandler extends MessageHandler {
     }
 
     private GnutellaPacket makeResponsePacket(GnutellaPacket pkt, String file) {
-        byte[] payload = Utility.stringToByteArray(parent.getName() + ";" + file);
+        String resp = parent.getName() + ";" + parent.getIdentifier() + ";" + file;
+        byte[] payload = Utility.stringToByteArray(resp);
 
         return new GnutellaPacket(pkt.getMessageID(),
                 GnutellaPacket.HITQUERY,
@@ -139,7 +140,6 @@ class MessageQueryHandler extends MessageHandler {
             return;
         }
 
-
         InetAddress upstream = parent.getUpstream(messageID, GnutellaPacket.QUERY);
         if (upstream == null) {
             //  this was my request!!, open connection to port & retrieve file
@@ -150,13 +150,22 @@ class MessageQueryHandler extends MessageHandler {
                 assert payload != null;
                 String payloadWords[] = payload.split(";");
 
-                assert payloadWords.length == 2;
+                assert payloadWords.length == 3;
                 String host = payloadWords[0];
-                String file = payloadWords[1];
+                UUID identifier = UUID.fromString(payloadWords[1]);
+                String file = payloadWords[2];
                 InetAddress originAddr = InetAddress.getByName(host);
 
                 Debug.DEBUG("Host: " + host + " File: " + file +
                         " originAddr: " + originAddr.toString(), "onHitQuery");
+
+                if (parent.isFirewalled(originAddr)) {
+
+
+                    Socket sk = new Socket(originAddr, parent.getHTTPPORT());
+                    sendRequestPacket(sk, makePushPacket(identifier, file));
+                    return;
+                }
 
                 retrieveFile(file, originAddr, messageID);
                 //remove the file from the list of files we want to request
@@ -168,6 +177,23 @@ class MessageQueryHandler extends MessageHandler {
         } else { // otherwise forward it along
             forwardPacket(upstream, parent.getQUERYPORT(), pkt);
         }
+    }
+
+
+    // request from client to server to push stuff
+    private GnutellaPacket makePushPacket(UUID identifier, String file) {
+        Debug.DEBUG("Hashcode for: " + file + " is" + file.hashCode(), "makePushPacket");
+        PushMessage msg = new PushMessage(identifier,
+                file.hashCode(),
+                parent.getAddress(),
+                parent.getHTTPPORT());
+        Debug.DEBUG(msg.toString(), "makePushPacket");
+        return new GnutellaPacket(UUID.randomUUID(),
+                GnutellaPacket.PUSH,
+                GnutellaPacket.DEF_TTL,
+                GnutellaPacket.DEF_HOPS,
+                msg.pack());
+
     }
 
     // File requesting is done through packets as well, although
