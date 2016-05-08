@@ -1,3 +1,9 @@
+/*  ServentConfig
+*  Defines the configuration for the servent and its network, i.e.
+*  its root directory, id, and neighbors, and the functions to set up
+*  the configuation when the servent is started.
+*/
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

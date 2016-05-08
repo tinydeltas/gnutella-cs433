@@ -1,3 +1,10 @@
+/* Servent
+*  The peer that can upload or download files from other servents in the
+*  system, called "servent" in Gnutella presumably as a portmanteau of 
+*  "server" and "client".  The configuration of servents in the network 
+*  is defined in the config file entered on the command line.
+*/
+
 import java.io.*;
 import java.net.*;
 import java.util.*;

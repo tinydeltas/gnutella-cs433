@@ -1,3 +1,9 @@
+/* MessageQueryHandler
+*  Handles queries/hitqueries seen by a listening QueryThread.
+*  Determines if the requested file is available locally, and sends
+* a hitquery if so; otherwise forwards the query to its neighbors.
+*/
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;

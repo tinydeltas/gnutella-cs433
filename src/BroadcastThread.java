@@ -1,3 +1,7 @@
+/* BroadcastThread
+*  Thread to send a query for a file to a specific servent.
+*/
+
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;

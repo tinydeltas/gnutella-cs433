@@ -1,3 +1,7 @@
+/* GnutellaThread
+*  Superclass for threads listening for queries and file requests from a welcome socket.
+*/
+
 import java.io.*;
 import java.net.*;
 import java.lang.Thread;

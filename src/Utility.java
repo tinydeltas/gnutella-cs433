@@ -1,3 +1,8 @@
+/* Utility
+* Provides useful static methods
+*/
+
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -6,13 +11,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-//Same as the Utility code from HW4 for Fishnet
 
-/**
- * <pre>
- * Provides some useful static methods
- * </pre>
- */
 class Utility {
 
     private static final String CHARSET = "US-ASCII";

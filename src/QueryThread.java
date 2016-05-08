@@ -1,3 +1,9 @@
+/*  QueryThread
+*
+*  Thread that listens for queries and hitqueries from neighboring servents.
+*
+*/
+
 import java.net.*;
 
 public class QueryThread extends GnutellaThread {

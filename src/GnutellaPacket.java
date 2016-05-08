@@ -1,3 +1,9 @@
+/*GnutellaPacket
+*  Defines the header for a request in the file-sharing system,
+*  and methods for converting it to and from a byte array.
+*  Used to send messages between servents in this system.
+*/
+
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
@@ -5,7 +11,7 @@ import java.util.UUID;
 
 
 /**
- * Similar to TransportPacket in the TCP project
+ * Similar to Transport in the TCP project
  */
 public class GnutellaPacket {
     private static final int HEADER_ID_SIZE = 16;

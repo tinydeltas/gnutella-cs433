@@ -1,3 +1,6 @@
+/* Debug
+*  Functions for debugging.
+*/
 
 class Debug {
     private static boolean debug = false;

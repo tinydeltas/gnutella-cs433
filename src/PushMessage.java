@@ -1,3 +1,8 @@
+/*  PushMessage
+*  Defines the header for a PushMessage and functions for converting it 
+*  to a from a byte array.
+*/
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;

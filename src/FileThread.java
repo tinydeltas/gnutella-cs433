@@ -1,3 +1,7 @@
+/* FileThread
+*  Thread that listens for obtain and push requests for files from other servents.
+*/
+
 import java.net.*;
 
 public class FileThread extends GnutellaThread{

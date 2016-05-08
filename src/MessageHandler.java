@@ -1,3 +1,9 @@
+/* Message Handler
+*  Superclass for the query and file-request handlers.  Defines
+*  functions for reading the message from the socket and sending
+*  packets.
+*/
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
