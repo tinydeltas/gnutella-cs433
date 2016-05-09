@@ -1,0 +1,102 @@
+(provide a description of your project including but not limited to techniques you used, input and output, design goals, achievements and impacts, future improvements, problems encountered. It would be better if you could provide some figures to illustrate)
+
+====================
+ How to Use 
+====================
+
+Each individual peer (or "servent") is started on a separate machine in the command line.  A servent can be started through the command:
+
+> java Servent -id <id_number> -config <config_file>
+
+where <id_number> is a integer ID number unique to the servent, and <config_file> contains the static network configuration for all servents in the system.  All servents must be started with the same configuration file.
+
+After all servents have been started, the user can type into the command line the names of one or more files they want to request, separated by spaces.  Press enter and the servent will attempt to request and download these files.
+
+
+
+====================
+ Configuration File
+====================
+The setup for a servent of a configuration file is as follows:
+<Servent ID#>
+	ROOT: root/directory/to/search/for/files/in
+	<Neighbors>
+		ip.address.or.name.of.neighbor   yes/no
+		ip.address.of.other.neighbor     yes/no
+	</Neighbors>
+</Servent>
+
+Where ID# is the ID number of the servent provided on the command line with -id, ROOT: is followed by the local directory that the peer will consider to be the root from which it searched for requested files, and <Neighbors> contains a list of IP addresses or names of the machines that are neighbors to this servent.  This is followed by either "yes" or "no" which indicates whether the servent acting as the server (the one with the desired file) needs to initiate the file download instead of the client servent
+
+A configuration file contains a list of these setups, one for each servent in the system, separated by newlines.
+
+
+====================
+Goals
+====================
+Our goal was to create a distributed file-sharing system based on the Gnutella protocol.  It is based on a prompt from a CS class at http://www.cs.iit.edu/~iraicu/teaching/CS550-S11/pa2.pdf
+
+The goal is to have a P2P system that can handle multiple concurrent connections, propagate requests for files through a network even though each peer only knows its immediate neighbors, and successfully download the requested files to the original peer.
+
+
+====================
+Design & Implementation
+====================
+
+This is a distributed file sharing system.  Each servent has a list of neighboring servents, and knows the IP addresses of these neighbors only.  When a servent requests a file, it sends a QUERY for that file to all of its neighbors.  If these neighbors have the file, they send a HITQUERY message to the requester.  If they don't, they forward the QUERY to all of their neighbors.  This way the request propagates through the network.  
+
+Each servent maps an observed QUERY messageIDs to the sender's InetAddress, so when it receives a HITQUERY for that messageID it can propagate the HITQUERY back to the original requester.  When the original requester (client) gets a HITQUERY, the HITQUERY contains the IP address of the servent with the file (server).  Then the client can open a direct connection to the server so it can download the file.
+
+Each peer has multiple threads, one listening to user input in order to see which files to request, and several listening for incoming connections.  We used the share-welcome-socket technique for accepting new connections.  Threads prepared to handle QUERY/HITQUERY messages listen on port 7777, and threads prepared to handle file downloads listen on port 5760.  When a packet is read from the socket, the handler determines which type of message it is (QUERY vs HITQUERY, OBTAIN, PUSH) and handles it appropriately.
+
+
+
+====================
+Input and Output
+====================
+
+Once the servent is started, user input on the command line should be the names of files that the user wants to request.
+
+//TO DO - Output
+
+The output at each servent will inform the user of the state of incoming and processing connections, e.g. when new requests have been received, which handlers are handling them, and what packet it is sending.  This is intended to help the user understand what is going on.  A servent requesting a file will also inform the user whether that file was downloaded successfully, and will output the contents of the file.
+
+
+
+====================
+Achievements & Impact
+====================
+
+
+We succeeded at creating a multi-threaded file-sharing system that can share files between non-adjacent peers using only neighbor-to-neighbor connections.  This protocol is relatively simple, making it useful for applications. 
+
+//TO DO 
+i don't really know what else to say
+
+
+====================
+Future Improvements
+====================
+-neighbor discovery
+-caching
+-ultrapeers ?
+-timeout - how to handle
+-http instead of OBTAIN
+-lock
+-servent should save file 
+
+
+====================
+Problems Encountered
+====================
+-socket problems and getting streams of 0
+-read from socket hanging
+
+//what else?
+
+====================
+Testing
+====================
+
+//TO DO
+extensive description of testing
