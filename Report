@@ -7,9 +7,9 @@ Final Project for CPSC 433
 
 Each individual peer (or "servent") is started on a separate machine in the command line.  A servent can be started through the command:
 
-> java Servent -id <id_number> -config <config_file>
+> java Servent -id <id_number> -config <config_file> [-d]
 
-where <id_number> is a integer ID number unique to the servent, and <config_file> contains the static network configuration for all servents in the system.  All servents must be started with the same configuration file.
+where <id_number> is a integer ID number unique to the servent, and <config_file> contains the static network configuration for all servents in the system.  All servents must be started with the same configuration file.  -d is optional, and if present it will turn on debugging output.
 
 After all servents have been started, the user can type into the command line the names of one or more files they want to request, separated by spaces.  Press enter and the servent will attempt to request and download these files.
 
@@ -65,7 +65,9 @@ Input and Output
 
 Once the servent is started, user input on the command line should be the names of files that the user wants to request.
 
-The output at each servent will inform the user of the state of incoming and processing connections, e.g. when new requests have been received, which handlers are handling them, and what packet it is sending.  This is intended to help the user understand what is going on.  A servent requesting a file will also inform the user whether that file was downloaded successfully, and will output the contents of the file.
+If the -d flag is present in the command line args to Servent, the servent will print debugging output that specifies information about: incoming connections, packets being received and sent, which handlers are handling messages and where they are in the process, etc.  This is intended to help the user understand what is going on. 
+
+A servent requesting a file will also inform the user whether that file was downloaded successfully, and will output the contents of the file if it was successful.  If any files were not successfully downloaded, it will inform the user of those files.
 
 
 
