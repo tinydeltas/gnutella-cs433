@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 class ClientThread extends Thread {
     private final Servent servent;
-    public static ArrayList<String> files;
+    public ArrayList<String> files;
     private final int NUMTHREADS = 8;
     private final long TIMEOUT = 5;
 
@@ -41,6 +41,9 @@ class ClientThread extends Thread {
                 e.printStackTrace();
                 continue;
             }
+
+            if(nextLine.trim().length() == 0) //empty line
+                continue;
 
             String[] words = nextLine.trim().split("\\s+");
             for (String word : words) {
@@ -104,10 +107,15 @@ class ClientThread extends Thread {
             for(String name : files){
                 System.out.println(name + " was not downloaded.");
             }
-
-            e.printStackTrace();
+            files.clear();
+            //e.printStackTrace();
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println("Some problems downloading files...");
+            for(String name : files){
+                System.out.println(name + " was not downloaded.");
+            }
+            files.clear();
         }
     }
 

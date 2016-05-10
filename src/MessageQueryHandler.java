@@ -220,7 +220,7 @@ class MessageQueryHandler extends MessageHandler {
             }
             else{
                 System.out.println(file + " was successfully downloaded.");
-                System.out.println(holder.toString());
+                System.out.println(Utility.byteArrayToString(holder));
                  //remove the file from the list of files we want to request
                 parent.removeFile(file);
             }

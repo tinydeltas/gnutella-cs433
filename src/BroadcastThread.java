@@ -13,12 +13,14 @@ class BroadcastThread implements Callable<Thread>  {
     private final Servent servent;
     private final InetAddress neighbor;
     private final String filename;
+    private ArrayList<String> files;
 
 
     public BroadcastThread(Servent servent, InetAddress neighbor, String filename, ArrayList<String> files) {
         this.servent = servent;
         this.neighbor = neighbor;
         this.filename = filename;
+        this.files = files;
     }
 
     public Thread call() {
@@ -30,17 +32,18 @@ class BroadcastThread implements Callable<Thread>  {
 
         //wait until the file no longer is being looked for (means it was downloaded successfully)
         Debug.DEBUG("Function finished", "call");
-        synchronized (ClientThread.files) {
-            while (!ClientThread.files.isEmpty()) {
-                try {
-                    ClientThread.files.wait();
-                } catch (InterruptedException ex) {
-                    System.out.println("Waiting for pool interrupted.");
-                    ex.printStackTrace();
-                }
+        //synchronized (files) {
+            while (files.contains(filename) && !Thread.interrupted()) { //busy wait :(  because I couldn't get notify to work
+                //try {
+                //    ClientThread.files.wait();
+                //} catch (InterruptedException ex) {
+                //    System.out.println("Waiting for pool interrupted.");
+                //    ex.printStackTrace();
+                //}
+                //System.out.print(".");
             }
             return null;
-        }
+        //}
     }
 
     private void sendQuery() {
@@ -84,4 +87,8 @@ class BroadcastThread implements Callable<Thread>  {
                 GnutellaPacket.DEF_HOPS,
                 Utility.stringToByteArray(message));
     }
+
+    /*public void interrupted(){
+        throw InterruptedException;
+    }*/
 }
