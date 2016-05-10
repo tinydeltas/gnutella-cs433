@@ -207,10 +207,16 @@ class MessageQueryHandler extends MessageHandler {
 
             int numRead, read;
             numRead = 0;
+            String newfilename = parent.cfg.dirRoot + file + "-download";
+            System.out.println(newfilename);
+
+            FileOutputStream out = new FileOutputStream(newfilename);
+
             byte[] holder = new byte[1024];
             while ((read = r.read(holder)) != -1 &&
                     !sk.isInputShutdown() && !sk.isClosed()) {
                 numRead += read;
+                out.write(holder, 0, read);
             }
 
             System.out.println("\t[" + file + "] Downloaded " + numRead + " bytes out of " + length);
@@ -219,8 +225,13 @@ class MessageQueryHandler extends MessageHandler {
                 Debug.DEBUG_F("Read wrong length", "retrieveFile");
             }
             else{
-                System.out.println(file + " was successfully downloaded.");
-                System.out.println(Utility.byteArrayToString(holder));
+                System.out.println(file + " was successfully downloaded. Contents of file:");
+                
+                BufferedReader br = new BufferedReader(new FileReader(newfilename));
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                }
                  //remove the file from the list of files we want to request
                 parent.removeFile(file);
             }
