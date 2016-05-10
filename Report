@@ -1,4 +1,5 @@
-(provide a description of your project including but not limited to techniques you used, input and output, design goals, achievements and impacts, future improvements, problems encountered. It would be better if you could provide some figures to illustrate)
+Lining Wang & Rebecca Nickerson
+Final Project for CPSC 433
 
 ====================
  How to Use 
@@ -12,6 +13,7 @@ where <id_number> is a integer ID number unique to the servent, and <config_file
 
 After all servents have been started, the user can type into the command line the names of one or more files they want to request, separated by spaces.  Press enter and the servent will attempt to request and download these files.
 
+We will provide some testing instructions and example configuration files for testing, listed at the end of this document.
 
 
 ====================
@@ -26,9 +28,10 @@ The setup for a servent of a configuration file is as follows:
 	</Neighbors>
 </Servent>
 
-Where ID# is the ID number of the servent provided on the command line with -id, ROOT: is followed by the local directory that the peer will consider to be the root from which it searched for requested files, and <Neighbors> contains a list of IP addresses or names of the machines that are neighbors to this servent.  This is followed by either "yes" or "no" which indicates whether the servent acting as the server (the one with the desired file) needs to initiate the file download instead of the client servent
+Where ID# is the ID number of the servent provided on the command line with -id, ROOT: is followed by the local directory that the peer will consider to be the root from which it searches for requested files, and <Neighbors> contains a list of IP addresses or names of the machines that are neighbors to this servent.  This is followed by either "yes" or "no" which indicates whether the servent acting as the server (the one with the desired file) needs to initiate the file download instead of the client servent, i.e. if there is a firewall.
 
 A configuration file contains a list of these setups, one for each servent in the system, separated by newlines.
+
 
 
 ====================
@@ -36,7 +39,12 @@ Goals
 ====================
 Our goal was to create a distributed file-sharing system based on the Gnutella protocol.  It is based on a prompt from a CS class at http://www.cs.iit.edu/~iraicu/teaching/CS550-S11/pa2.pdf
 
-The goal is to have a P2P system that can handle multiple concurrent connections, propagate requests for files through a network even though each peer only knows its immediate neighbors, and successfully download the requested files to the original peer.
+The goal is to have a P2P system that can handle multiple concurrent connections, propagate requests for files through a network even though each peer only knows its immediate neighbors, and successfully download the requested files to the original peer. 
+
+A full version of the Gnutella protocol can be found at http://web.stanford.edu/class/cs244b/gnutella_protocol_0.4.pdf
+
+We implemented a simplifed version of the Gnutella protocol that does not do neighbor discovery.  Instead, the setup of peers and their neighbors is static and remains the same the entire time. 
+
 
 
 ====================
@@ -57,8 +65,6 @@ Input and Output
 
 Once the servent is started, user input on the command line should be the names of files that the user wants to request.
 
-//TO DO - Output
-
 The output at each servent will inform the user of the state of incoming and processing connections, e.g. when new requests have been received, which handlers are handling them, and what packet it is sending.  This is intended to help the user understand what is going on.  A servent requesting a file will also inform the user whether that file was downloaded successfully, and will output the contents of the file.
 
 
@@ -67,32 +73,32 @@ The output at each servent will inform the user of the state of incoming and pro
 Achievements & Impact
 ====================
 
+We succeeded at creating a multi-threaded file-sharing system that can share files between both adjacent and non-adjacent peers using only neighbor-to-neighbor queries.  This protocol is relatively simple, but useful for applications - Gnutella applications in deployment have had millions of users.  We also implemented it slightly differently, using a OBTAIN request rather than an HTTP request to download a file from a server-servent to a client-servent.  This indicates the flexibility of gnutella and a possible alternative to the current design.
 
-We succeeded at creating a multi-threaded file-sharing system that can share files between non-adjacent peers using only neighbor-to-neighbor connections.  This protocol is relatively simple, making it useful for applications. 
-
-//TO DO 
-i don't really know what else to say
 
 
 ====================
 Future Improvements
 ====================
--neighbor discovery
--caching
--ultrapeers ?
--timeout - how to handle
--http instead of OBTAIN
--lock
--servent should save file 
+
+1) Neighbor Discovery.  Since we implemented a simplified version of Gnutella that has a static configuration, our peers do not use PING and PONG to discover neighbors.  A future improvement for the project would be to have a dynamic configuration and peers that use PING and PONG.
+
+2) HTTP file requesting.  Gnutella uses HTTP to request files when a servent receives its HITQUERY back.  We did it differently using a packet sent directly to the servent with the file containing an OBTAIN message.  This works just as well in our testing, but to more accurately emulate the Gnutella protocol we could improve the project by using HTTP requests.
+
+3) Ultrapeers.  Gnutella treats some users of "ultrapeers" which contain many connections, are faster, and have most messages routed through them.  This shields other, slower nodes from dealing with excessive traffic. This would have been an interested improvement to add to this project.  
+
+4) Caching.  Similar to the caching in HW3, frequently accessed files could be cached in a servent so it can upload the file more quickly when that file is requested.
+
 
 
 ====================
 Problems Encountered
 ====================
--socket problems and getting streams of 0
--read from socket hanging
 
-//what else?
+We had some problems reading to and sending from the correct sockets.  Since the sockets remain open, reading a message from the socket's stream would hang because the connection never closed and thus read never returned -1.  To solve this, we made the first 4 bytes of every message indicate the int that was the length of the message, and thus the number of bytes to read from the socket.  Then the thread could wait until that many bytes were read and move on to handling the message.
+
+Another problem we encountered was sending return messages (e.g. a HITQUERY) between messages correctly.  We encountered this problem because we were saving the port and InetAddress to send the HITQUERY to, but were creating a new socket to send the message back rather than writing to the original socket that received the message.  This meant that the local computer assigned a different local port to the message and thus the other machine did not recognize the message as part of the original connection.  We fixed this by passing in the socket as a parameter to the handlers, rather than just the InetAddress of the message destination, so the handler could write directly into that socket. 
+
 
 ====================
 Testing
