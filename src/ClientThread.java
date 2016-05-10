@@ -1,3 +1,8 @@
+/*ClientThread
+* The thread that runs on a servent that listens to user input to find files to request,
+* and then starts threads to request them.
+*/
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -15,8 +20,8 @@ class ClientThread extends Thread {
     private final long TIMEOUT = 5;
 
     public ClientThread(Servent p) {
-        this.servent = p;
-        ClientThread.files = servent.cfg.getFiles();
+       this.servent = p;
+       this.files = servent.cfg.getFiles();
     }
 
     public void run(){
@@ -95,6 +100,11 @@ class ClientThread extends Thread {
             }
             System.out.println("\tAll tasks successfully completed");
         } catch(InterruptedException e){
+            System.out.println("Some problems downloading files...");
+            for(String name : files){
+                System.out.println(name + " was not downloaded.");
+            }
+
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();

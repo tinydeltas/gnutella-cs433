@@ -19,26 +19,34 @@ class QueryArray {
     }
 
     boolean contains(UUID messageID, int descriptor){
-        return map.containsKey(new IDDescriptorPair(messageID, descriptor));
+        synchronized(map){
+            return map.containsKey(new IDDescriptorPair(messageID, descriptor));
+        }
     }
 
     InetAddress retrieve(UUID messageID, int descriptor) {
-        return map.get(new IDDescriptorPair(messageID, descriptor));
+        synchronized(map){
+            return map.get(new IDDescriptorPair(messageID, descriptor));
+        }
     }
 
     void add(UUID messageID, int descriptor, InetAddress addr) {
-        if (addr != null)
-            Debug.DEBUG("Adding [" + messageID + ", " + addr.getCanonicalHostName(),
-                "QueryArray:add");
-        map.put(new IDDescriptorPair(messageID, descriptor), addr);
-        flush();
+        synchronized(map){
+            if (addr != null)
+                Debug.DEBUG("Adding [" + messageID + ", " + addr.getCanonicalHostName(),
+                    "QueryArray:add");
+            map.put(new IDDescriptorPair(messageID, descriptor), addr);
+            flush();
+        }
     }
 
     private void flush() {
         // flushes oldest (?) entry
-        if (map.size() > maxEntries && map.size() != 0) {
-            Debug.DEBUG("Removing oldest entry", "QueryArray:flush");
-            map.remove(0);
+        synchronized(map){
+            if (map.size() > maxEntries && map.size() != 0) {
+                Debug.DEBUG("Removing oldest entry", "QueryArray:flush");
+                map.remove(0);
+            }
         }
     }
 }

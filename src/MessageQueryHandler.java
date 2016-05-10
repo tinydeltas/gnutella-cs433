@@ -160,9 +160,6 @@ class MessageQueryHandler extends MessageHandler {
                 }
 
                 retrieveFile(file, originAddr, messageID);
-                //remove the file from the list of files we want to request
-                parent.removeFile(file);
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -217,9 +214,16 @@ class MessageQueryHandler extends MessageHandler {
             }
 
             System.out.println("\t[" + file + "] Downloaded " + numRead + " bytes out of " + length);
-            if (length != numRead)
+            if (length != numRead){
+                System.out.println(file + " not successfully downloaded.");
                 Debug.DEBUG_F("Read wrong length", "retrieveFile");
-
+            }
+            else{
+                System.out.println(file + " was successfully downloaded.");
+                System.out.println(holder.toString());
+                 //remove the file from the list of files we want to request
+                parent.removeFile(file);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

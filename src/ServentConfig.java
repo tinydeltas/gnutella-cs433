@@ -112,6 +112,11 @@ public class ServentConfig {
         for(InetAddress ia : neighbors){
             debug.add("\t" + ia);
         }
-        return String.join("\n", debug);
+        //return String.join("\n", debug); //couldn't get this line to compile so expanded it below
+        String retval = "";
+        for(String s : debug){
+            retval += s + "\n";
+        }
+        return retval;
     }
 }

@@ -85,5 +85,3 @@ class BroadcastThread implements Callable<Thread>  {
                 Utility.stringToByteArray(message));
     }
 }
-Status API Training Shop Blog About
-© 2016 GitHub, Inc. Terms Privacy Security Contact Help
