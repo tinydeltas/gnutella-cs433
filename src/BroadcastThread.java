@@ -61,7 +61,7 @@ class BroadcastThread implements Callable<Thread>  {
         sendPacket(neighbor, servent.getQUERYPORT(), queryPacket);
     }
 
-    private void sendPacket(InetAddress to, int port, GnutellaPacket pkt) {
+    public static void sendPacket(InetAddress to, int port, GnutellaPacket pkt) {
         Debug.DEBUG_F("Sending packet to " + to.getCanonicalHostName()
                 + ":" + pkt.toString(), "sendPacket");
 
@@ -78,14 +78,6 @@ class BroadcastThread implements Callable<Thread>  {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private GnutellaPacket conByePacket(String message) {
-        return new GnutellaPacket(UUID.randomUUID(),
-                GnutellaPacket.BYE,
-                1,
-                GnutellaPacket.DEF_HOPS,
-                Utility.stringToByteArray(message));
     }
 
     /*public void interrupted(){

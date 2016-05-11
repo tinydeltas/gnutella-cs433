@@ -18,7 +18,7 @@ abstract class MessageHandler {
     final Socket socket;
     private InputStream is = null;
 
-    MessageHandler(Servent parent, ServerSocket welcomeSocket, Socket socket) {
+    MessageHandler(Servent parent, Socket socket) {
         this.parent = parent;
         this.socket = socket;
         try {
@@ -32,39 +32,55 @@ abstract class MessageHandler {
         Debug.DEBUG_F("Sending packet to" + to.toString()
                 + ":" + port + ":" + pkt.toString(), "forwardPacket");
 
+        DataOutputStream out = null;
+        Socket s = null;
         try {
-            Socket s = new Socket(to, port);
-            DataOutputStream out =
-                    new DataOutputStream(s.getOutputStream());
+            s = new Socket(to, port);
+            out = new DataOutputStream(s.getOutputStream());
             out.write(ByteBuffer.allocate(4).putInt(pkt.pack().length).array()); //encode the length in a int
             out.write(pkt.pack());
-            out.close();
+            out.flush();
+
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (out != null)
+                    out.close();
+                if (s != null)
+                    s.close();
+                Debug.DEBUG("Successfully closed socket", "forwardPacket");
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     void sendRequestPacket(Socket s, GnutellaPacket pkt){
-        Debug.DEBUG_F("Sending debug packet", "sendRequestPacket");
+        Debug.DEBUG_F("Sending request packet", "sendRequestPacket");
         try {
             DataOutputStream out =
                     new DataOutputStream(s.getOutputStream());
             out.write(ByteBuffer.allocate(4).putInt(pkt.pack().length).array());
             out.write(pkt.pack());
             out.flush();
+            Debug.DEBUG("Successfully sent request packet to " + s.toString(), "sendRequestPacket");
             //does NOT close socket
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    void sendPayload(byte[] payload){
+    void sendPayload(byte[] payload, boolean close){
         try{
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            Debug.DEBUG("Writing to: " + socket.toString(), "sendPayload");
             out.writeInt(payload.length);
             out.write(payload);
             out.flush();
-            out.close();
+            if (close)
+                out.close();
         } catch(Exception e){
             e.printStackTrace();
         }

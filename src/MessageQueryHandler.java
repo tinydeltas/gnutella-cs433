@@ -15,7 +15,7 @@ import java.util.UUID;
 class MessageQueryHandler extends MessageHandler {
 
     public MessageQueryHandler(GnutellaThread thread, Socket socket) {
-        super(thread.servent, thread.welcomeSocket, socket);
+        super(thread.servent, socket);
         Debug.DEBUG("Creating new handler for " + socket.toString(), "MessageQueryHandler constructor");
 
     }
@@ -46,23 +46,23 @@ class MessageQueryHandler extends MessageHandler {
                 onBye(from, pkt);
                 break;
             default:
-                System.out.println("Unrecognized descriptor");
+                Debug.DEBUG_F("Unrecognized descriptor", "MessageQueryHandler");
                 break;
         }
+        Debug.DEBUG("Exiting onPacketReceive", "onPacketReceive");
     }
 
-    // todo
+
     private void onBye(InetAddress from, GnutellaPacket pkt) {
-        // see
-        // remove from set of neighbors
+        // remove from set of neighbor
         String message = Utility.byteArrayToString(pkt.getPayload());
         System.out.println("BYE message: " + message);
         for (InetAddress n : parent.getNeighbors()) {
             if (n.equals(from)) {
+                Debug.DEBUG("Removed " + from.toString() + "from list of neighbors", "[onBye]");
                 parent.getNeighbors().remove(n);
             }
         }
-
     }
 
     /// REGULAR QUERY HANDLING
@@ -152,14 +152,14 @@ class MessageQueryHandler extends MessageHandler {
                         " originAddr: " + originAddr.toString(), "onHitQuery");
 
                 if (parent.isFirewalled(originAddr)) {
-
-
                     Socket sk = new Socket(originAddr, parent.getHTTPPORT());
                     sendRequestPacket(sk, makePushPacket(identifier, file));
-                    return;
+                    receiveFile(file, sk);
+                } else {
+                    Socket sk = new Socket(originAddr, parent.getHTTPPORT());
+                    sendRequestPacket(sk, makeRequestPacket(messageID, file));                       // sent off the request packet
+                    receiveFile(file, sk);
                 }
-
-                retrieveFile(file, originAddr, messageID);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -196,22 +196,17 @@ class MessageQueryHandler extends MessageHandler {
     }
 
 
-    private void retrieveFile(String file, InetAddress sentAddr, UUID messageID) {
-        Socket sk = null;
+    private void receiveFile(String file, Socket sk) {
+        DataInputStream r = null;
         try {
-            sk = new Socket(sentAddr, parent.getHTTPPORT());
-            DataInputStream r = new DataInputStream(sk.getInputStream());
-            sendRequestPacket(sk, makeRequestPacket(messageID, file));    // sent off the request packet
-
+            while (sk.isClosed() || !sk.isConnected());
+            r = new DataInputStream(sk.getInputStream());
             int length = r.readInt();
-
             int numRead, read;
             numRead = 0;
             String newfilename = parent.cfg.dirRoot + file + "-download";
             System.out.println(newfilename);
-
             FileOutputStream out = new FileOutputStream(newfilename);
-
             byte[] holder = new byte[1024];
             while ((read = r.read(holder)) != -1 &&
                     !sk.isInputShutdown() && !sk.isClosed()) {
@@ -226,7 +221,7 @@ class MessageQueryHandler extends MessageHandler {
             }
             else{
                 System.out.println(file + " was successfully downloaded. Contents of file:");
-                
+
                 BufferedReader br = new BufferedReader(new FileReader(newfilename));
                 String line = null;
                 while ((line = br.readLine()) != null) {

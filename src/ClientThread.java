@@ -46,6 +46,14 @@ class ClientThread extends Thread {
                 continue;
 
             String[] words = nextLine.trim().split("\\s+");
+
+            if (words.length == 1 && words[0].toUpperCase().equals("BYE")) {
+                for (InetAddress n : servent.getNeighbors()) {
+                    BroadcastThread.sendPacket(n, servent.getQUERYPORT(), conByePacket("Graceful goodbye"));
+                }
+                System.exit(0);
+            }
+
             for (String word : words) {
                 if (word.equals("\n"))
                     continue;
@@ -55,12 +63,17 @@ class ClientThread extends Thread {
 
             printFiles();
             broadcast();
-
-            if (words.length == 0 && words[0].toUpperCase().equals("BYE")) {
-                return;
-            }
         }
     }
+
+    private GnutellaPacket conByePacket(String message) {
+        return new GnutellaPacket(UUID.randomUUID(),
+                GnutellaPacket.BYE,
+                1,
+                GnutellaPacket.DEF_HOPS,
+                Utility.stringToByteArray(message));
+    }
+
 
     private void printFiles() {
         if (files.get(0).toUpperCase().equals("BYE")) {

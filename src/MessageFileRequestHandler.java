@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 class MessageFileRequestHandler extends MessageHandler {
 
     public MessageFileRequestHandler(GnutellaThread thread, Socket socket) {
-        super(thread.servent, thread.welcomeSocket, socket);
+        super(thread.servent, socket);
     }
 
     public void onPacketReceive(InetAddress from, byte[] packet) {
@@ -32,13 +32,13 @@ class MessageFileRequestHandler extends MessageHandler {
                 break;
             case GnutellaPacket.PUSH:
                 onPush(pkt, from);
+                break;
             default:
-                System.out.println("Unrecognized descriptor");
+                Debug.DEBUG_F("Unrecognized descriptor", "messageFileRequestHandler");
                 break;
         }
     }
 
-    // todo: fix so you exchange UUID identifiers as well
     private void onPush(GnutellaPacket pkt, InetAddress from) {
         PushMessage msg = PushMessage.unpack(pkt.getPayload());
         Debug.DEBUG(msg.toString(), "onPush");
@@ -55,7 +55,7 @@ class MessageFileRequestHandler extends MessageHandler {
         }
 
         // otherwise send the file.
-        sendFile(parent.fileTable.get(fileIndex));
+        sendFile(parent.fileTable.get(fileIndex), true);
     }
 
     private void onFileQuery(GnutellaPacket pkt, InetAddress from) {
@@ -72,15 +72,16 @@ class MessageFileRequestHandler extends MessageHandler {
             Debug.DEBUG("File request not seen", "onFileQuery");
             return;
         }
-        sendFile(new File(file));
+        sendFile(new File(file), true);
     }
 
-    private void sendFile(File f) {
+    private void sendFile(File f, boolean closeFile) {
         try {
             Path path = Paths.get(f.getAbsolutePath());
             byte[] fileBytes = Files.readAllBytes(path);
             Debug.DEBUG("Atttempting to write " + fileBytes.length + "bytes to connection", "onFileQuery");
-            sendPayload(fileBytes);
+            sendPayload(fileBytes, closeFile);
+            Thread.sleep(100);
             Debug.DEBUG("Successfully wrote all bytes to connection", "onFileQuery");
         } catch (Exception e) {
             e.printStackTrace();

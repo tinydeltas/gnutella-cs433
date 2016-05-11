@@ -1,0 +1,253 @@
+Additional features
+
+//        A Bye packet MUST be sent with TTL=1 (to avoid accidental propagation
+//        by an unaware servent), and hops=0 (of course).
+//
+//        A servent receiving a Bye message MUST close he connection
+//        immediately. The servent that sent the packet MUST wait a few
+//        seconds for the remote host to close the connection before closing
+//        it.  Other data MUST NOT be sent after the Bye message.  Make sure
+//        any send queues are cleared.
+//
+//                The servent that sent by Bye message MAY also call shutdown() with
+//        'how' set to 1 after sending the Bye message, partially closing the
+//        connection.  Doing a full close() immediately after sending the Bye
+//        messages would prevent the remote host from possibly seeing the Bye
+//        message.
+//
+//                After sending the Bye message, and during the "grace period" when
+//        we don't immediately close the connection, the servent MUST read
+//        all incoming messages, and drop them unless they are Query Hits
+//        or Push, which MAY still be forwarded (it would be nice to the
+//        network).  The connection will be closed as soon as the servent
+//        gets an EOF condition when reading, or when the "grace period"
+//        expires.
+
+- ultrapeering
+    3.2.1 Ultrapeer system
+
+    [TODO: Describe ultrapeer system here. Handshaking etc. Reference to QRP when used]
+    [TODO: Ultrapeer marked pongs: size field = power of 2]
+
+    The Ultrapeer system has been found effective for this purpose. It is
+    a scheme to have a hierarchical Gnutella network by categorizing the
+    nodes on the network as leaves and ultrapeers. A leaf keeps only a
+    small number of connections open, and that is to ultrapeers. An
+    ultrapeer acts as a proxy to the Gnutella network for the leaves
+    connected to it. This has an effect of making the Gnutella network
+    scale, by reducing the number of nodes on the network involved in
+    message handling and routing, as well as reducing the actual traffic
+    among them.
+
+    An ultrapeer only forwards a query to a leaf if it believes the leaf
+    can answer it, and leaves never relay queries between ultrapeers.
+    Ultrapeers are connected to each other and to "normal" Gnutella hosts
+    (hosts that do not implement the Ultrapeer system).
+
+    An ultrapeer decides what queries to forward to leaf nodes using the
+    Query Routing Protocol, QRP, which is described in section 3.2.2
+    below. If both an ultrapeer and a leaf node supports another protocol
+    for deciding which queries are forwarded that MAY be used instead.
+    QRP routing is not used between ultrapeers/normal hosts.
+
+
+    For more information please read the original specification at:
+    http://www.limewire.com/developer/Ultrapeers.html
+
+The Query Routing Protocol (QRP for short) is an essential part of
+the Ultrapeer specification: it governs how the Ultrapeer will filter
+queries and only forward those to the leaf nodes most likely to have
+a match.  This is done without even knowing the resource names, by
+looking the query words through a big hash table, that is sent by the
+leaf node to its Ultrapeer.
+
+The aim of the QRP is to avoid forwarding a query that cannot match,
+it is not to forward only those queries that will match.
+
+The overall operation goes thusly:
+
+* At the leaf node level:
+
+  + Break all the resource names into individual words.  A word is
+    made of a consecutive sequence of letters and digits.
+
+  + Hash each word with a well-known hash function and insert a
+    "present" flag in the corresponding hash table slot.
+    Note that this hash table is a big array, and we don't store
+    the key, only the fact that a key ended up filling some slot.
+    All words are lower-cased and all accents are removed from
+    them, i.e. is transformed into "deja", so that only
+    ASCII characters remain.  Only those words that are made of
+    at least 3 letters are retained.
+
+  + All words are re-hashed with their trailing 1, 2, or 3 letters
+    removed, provided the word length after such trimming is at
+    least 3 letter long.  This is a simple attempt to remove plural
+    from words.  Optionally, nodes can chop off more letters from the
+    end, provided that each hashed word is at least 3 character long.
+
+  + The "boolean vector" built at later stage is optionally
+    compressed, broken up in small messages, and sent mixed with
+    regular Gnet traffic to the ultrapeer.
+
+
+3.2.1.1 Ultrapeer election
+
+Since Gnutella is a decentralized system, ultrapeers are elected
+without the use of a central server. It is up to each node to
+determine if it is to become an ultrapeer or a shielded leaf node.
+First, there are some basic requirements that must be satisfied to
+even consider becoming an ultrapeer.
+
+* Not firewalled.  This can usually be approximated by looking at
+whether the host has received incoming connections.
+
+* Suitable operating system.  Some operating systems handle large
+numbers of sockets better than others.  Linux, Windows 2000/NT/XP,
+and Mac OS/X will typically make better ultrapeers than Windows
+95/98/ME or Mac Classic.
+
+* Sufficient bandwidth.  At least 15KB/s downstream and 10KB/s
+upstream bandwidth is recommended.  This can be approximated by
+looking at the maximum upload and download throughput.
+
+* Sufficient uptime.  Ultrapeers should have long expected uptimes.
+A reasonable heuristic is that the expected future uptime is
+proportional to the current uptime.  That is, nodes should not become
+ultrapeers until they have been running at least a few hours.
+
+* Sufficient RAM and CPU speed.  Ultrapeers need memory for storing
+routing tables and CPU speed for outing all incoming queries. Exactly
+how much is needed depends how efficiently it is implemented and must
+be experimented with.
+
+If the above criterias are met, a node is said to be ultrapeer
+capable.  Note that this is not the same as actually being an
+ultrapeer.
+
+Wheneither an ultrapeer capable node will actually become an
+ultrapeer depends on if there is need for more ultrapeers on the
+network, and on how well the above criterias are met.  The need for
+ultrapeers can be estimated from the noumber of ultrapeers found, and
+can be communicated when new connections are established (see below).
+
+
+- 3.1 Flow Control
+  Implement an output queue, listing pending outgoing messages in
+  FIFO order.  As long as the queue is less than, say, 25% of its
+  max size (in bytes queued, not in amount of messages), do nothing.
+  If the queue gets filled above 50%, enter flow-control mode.  You
+  stay in flow-control mode (FC mode for short) as long as the queue
+  does not drop below 25%.  This is called "hysteresis".
+
+  The queue size SHOULD be at least 150% of the maximum admissible
+  message size.
+
+  In FC mode, all incoming queries on the connection are dropped.
+  The rationale is that we would not want to queue back potentially
+  large results for this connection since it has a throughput problem.
+
+  Messages to be sent to the node (i.e. queued on the output queue)
+  are prioritized:
+
+  * For broadcasted messages, the more hops the packet has traveled,
+    the less prioritary it is.  Or the less hops, the more prioritary.
+    This means your own queries are the most prioritary (hops = 0).
+
+  * For replies (query hits), the more hops the packet has traveled,
+    the more prioritary it is.  This is to maximize network usefulness.
+    The packet was relayed by many hosts, so it should not be dropped
+    or the bandwidth it used would become truly wasted.
+
+  * Individual messages are prioritized thusly, from the most
+    prioritary to the least: Push, Query Hit, Pong, Query, Ping.
+    The Bye message being special, it is always sent (i.e. the queue
+    cannot be in FC mode since it needs to be cleared before sending
+    Bye).
+
+  Normally, all messages are accepted.  However, when the message to
+  enqueue would make the queue fill to more than 100% of its maximum
+  size, any queued message less prioritary in the queue is dropped.
+  If enough room could be made, enqueue the packet.  Otherwise, if the
+  message is a Query, a Pong or a Ping, drop it.  If not, send a
+  Bye 502 (Send Queue Overflow) message.
+
+- Query messages with TTL=1, hops=0 and Search Criteria="    " (four
+  spaces) are used to index all files a host is sharing. Servents
+  SHOULD reply to such queries with all its shared files. Multiple
+  Query Hit messages SHOULD be used if sharing many files. Allowed
+  reasons not to respond to index queries include privacy and
+  bandwidth.
+
+
+---------------------
+
+# done
+
+-  2.2.8 Push (0x40)
+
+  A Push message has the following fields:
+  Bytes:  Description:
+
+  0-15    Servent Identifier. The 16-byte string uniquely identifying
+          the servent on the network who is being requested to push the
+          file with index File_Index. The servent initiating the push
+          request MUST set this field to the Servent_Identifier
+          returned in the corresponding QueryHit message. This is
+          used to route the Push message to the sender of the Query
+          Hit message.
+
+  16-19   File Index. The index uniquely identifying the file to be
+          pushed from the target servent. The servent initiating the
+          push request MUST set this field to the value of one of the
+          File_Index fields from the Result Set in the corresponding
+          QueryHit message.
+
+  20-23   IP Address. The IP address of the host to which the file with
+          File_Index should be pushed. This field is in big-endian
+          format.
+
+  24-25   Port. The port number the receiver of this message should
+          push to.
+
+  A servent may send a Push message if it receives a QueryHit
+  message from a servent that doesn't support incoming connections.
+  This might occur when the servent sending the QueryHit message is
+  behind a firewall.  When a servent receives a Push message, it SHOULD
+  act upon the push request if and only if the servent_Identifier field
+  contains the value of its servent identifier.  The Message_Id field
+  in the Message Header of the Push message SHOULD not contain the same
+  value as that of the associated QueryHit message, but SHOULD contain
+  a new value generated by the servent's Message_Id generation
+  algorithm.
+
+  Push messages are forwarded back to the originator of the Query Hits
+  message using the Servent Identifier value.  This means multiple Push
+  messages can have the same Servent Identifier.  Push messages MUST
+  only be considered as duplicates if the Message ID in the header is
+  the same.  Since Push messages are not broadcasted, duplicate
+  messages should be very rare.
+
+
+QueryHit descriptors MAY ONLY be sent along the same path that carried
+the incoming Query descriptor. This ensures that only those servents that routed
+the Query descriptor will see the QueryHit descriptor in response.
+
+X A servent that receives a QueryHit descriptor with Descriptor ID = n,
+but has not seen a Query descriptor with Descriptor ID = n
+SHOULD remove the QueryHit descriptor from the network.
+
+X A servent SHOULD forward incoming Ping and Query descriptors to ALL
+of its directly connected servents,
+except the one that delivered the incoming Ping or Query.
+
+X A servent MUST decrement a descriptor header  TTL field,
+and increment its Hops field, before it forwards the descriptor to
+any directly connected servent. If, after decrementing the header TTL field,
+the TTL field is found to be zero, the descriptor is not forwarded along any connection.
+
+X A servent receiving a descriptor with the same Payload Descriptor
+and Descriptor ID as one it has received before,
+SHOULD attempt to avoid forwarding the descriptor to any connected servent.
+Its intended recipients have already received such a descriptor,
+and sending it again merely wastes network bandwidth.

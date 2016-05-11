@@ -20,18 +20,19 @@ abstract class GnutellaThread extends Thread{
 
 		for (;;){
 			Socket s;
-			synchronized(welcomeSocket){
+			synchronized(welcomeSocket) {
 				try{
 					s = welcomeSocket.accept();
+					Debug.DEBUG("Blocking on welcomeSocket accept", "run");
 					serveRequest(s);
 					s.close();
+					Debug.DEBUG("Finished a request", "run");
 				} catch(IOException e){
 					e.printStackTrace();
 				}
 			}
 		}
 	}
-
 
 
 	protected abstract void serveRequest(Socket socket);
