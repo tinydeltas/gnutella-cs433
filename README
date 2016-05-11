@@ -1,0 +1,79 @@
+README
+Final project for CPSC 433
+Lining Wang & Rebecca Nickerson
+
+====================
+Report
+====================
+
+Our report is located in the file Report in the gnutella-cs433 directory.
+
+
+====================
+Compiling & Setup
+====================
+
+This is a distributed file-sharing system based on the Gnutella protocol.  We tested it by running it on multiple zoo machines.  These instructions will explain how to set up and test it.
+
+Unpack the tar.gz directly into your /home/accts/<student_id> folder, so you should end up with the directory /home/accts/<student_id>/gnutella-cs433 containing all the files.  If you uppack it elsewhere and the path is different, you MUST change the ROOT variable in the configuration files (explained in the Testing Instructions section below), otherwise it will not work, as the program will not be able to find the right files.
+
+Inside gnutella-cs433 should be the folders src and testing.  Enter src and compile the program on the command line with > javac *.java.  
+
+Now you can run a servent on the command line within src using
+	 > java Servent -id <peer_id> -config <configuration_file>.  
+As setting up configurations is complex, we have provided example configurations for testing, explained in further detail below.
+
+
+=====================
+Testing Instructions 
+=====================
+
+We have set up test files for you to use.  These assume that you will run the tests on the zoo on specific machines.  Please follow instructions carefully to make sure it works.
+
+Also make sure you have followed the instructions on compiling/setup in order to ensure the paths in the configurations are correct so the tests can run correctly.
+
+IMPORTANT NOTE: Because these are run from the zoo, the path of the ROOT includes the studentID of whatever student is logged on. In the configuration files, there are places in the ROOT path marked <student_id>.  You must replace this with the studentID (e.g. rrn6) of whoever is logged into the computer that is running the servent so the servent can find the files it needs.
+
+ --- Test 1 ---
+In src/test1-config, replace each <student_id> with your ID (e.g. rrn6) in EACH of the three Servent setups.  The path should look something like: 
+	ROOT: /home/accts/rrn6/gnutella-cs433/testing/newt.    (but with your own ID in the path instead of mine).
+Make sure this path actually exists, since you should have unpacked the gnutella-cs433 directly in your studentID directory.  If you unpacked it in a different directory, you MUST update every ROOT path in test1-config accordingly.
+
+Go to testing/test1/test-description.  This provides details on how to run the test.  If it doesn't work (especially if a servent can't find a file that should exist and keeps timing out) check the ROOT paths in the configuration file and make sure they're right.
+
+The output in cobra should end with:
+	Some problems downloading files...
+	file3 was not downloaded.
+
+This is the correct behavior since file3 does not exist.  It should download file1 and file2 successfully.
+
+You can also look at the screenshots in testing/test1 to get an idea of what the output should be.
+
+If you want to do further testing with this configuration, use this guide to get an idea what which machines have which files available:
+	COBRA (id 0) has no files in its directory.
+	NEWT (id 1) has file1 in its directory.
+	APHID (id 2) has file2 in its directory
+
+e.g. ask NEWT to request file2, ask APHID to request file1, etc.
+All files should be successfully downloaded unless they do not exist in these directories, in which case the servent will report the failure after a timeout.
+
+ --- Test 2 ---
+ In src/test2-config, replace each <student_id> with your ID (e.g. rrn6) in EACH of the three Servent setups.  The path should look something like: 
+ 	ROOT: /home/accts/rrn6/gnutella-cs433/testing/newt.    (but with your own ID in the path instead of mine).
+Make sure this path actually exists, since you should have unpacked the gnutella-cs433 directly in your studentID directory.  If you unpack it in a different directory, you MUST update the path in the configuration file accordingly.
+
+Go to testing/test2/test-description.  This provides details on how to run the test.  If it doesn't work (especially if a servent can't find a file that should exist and keeps timing out) check the path in the configuration file and make sure it's right.
+
+The output in both swan and monkey should end with:
+	All tasks successfully completed
+
+You can also look at the screenshots in test/test2 to get an idea of what the output should be.
+
+If you want to do further testing with this configuration, use this guide to get an idea of which machines have which files available:
+	SWAN (id 0) has 1.txt
+	GATOR (id 1) has 2.txt and 4.txt
+	ZEBRA (id 2) has 32.txt and 64.txt
+	MONKEY (id 3) has 8.txt and 16.txt
+
+e.g. ask GATOR to request file 64.txt, ask ZEBRA to request 2.txt and 1.txt, etc
+All files should be successfully downloaded unless they do not exist in this directories, in which case the servent will report the failure after a timeout.

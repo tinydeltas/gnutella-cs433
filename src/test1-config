@@ -1,0 +1,21 @@
+<Servent 0>
+	ROOT: /home/accts/<student_id>/gnutella-cs433/testing/cobra
+	<Neighbors>
+		newt.zoo.cs.yale.edu no
+	</Neighbors>
+</Servent>
+
+<Servent 1>
+	ROOT: /home/accts/<student_id>/gnutella-cs433/testing/newt
+	<Neighbors>
+		cobra.zoo.cs.yale.edu no
+		aphid.zoo.cs.yale.edu no
+	</Neighbors>
+</Servent>
+
+<Servent 2>
+	ROOT: /home/accts/<student_id>/gnutella-cs433/testing/aphid
+	<Neighbors>
+		newt.zoo.cs.yale.edu no
+	</Neighbors>
+</Servent>

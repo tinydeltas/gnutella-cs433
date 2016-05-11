@@ -1,0 +1,27 @@
+<Servent 0>
+	ROOT: /home/accts/<student_id>/gnutella-cs433/testing/swan
+	<Neighbors>
+		gator.zoo.cs.yale.edu   no
+	</Neighbors>
+</Servent>
+
+<Servent 1>
+	ROOT: /home/accts/<student_id>/gnutella-cs433/testing/gator
+	<Neighbors>
+		monkey.zoo.cs.yale.edu   no
+	</Neighbors>
+</Servent>
+
+<Servent 2>
+	ROOT: /home/accts/<student_id>/gnutella-cs433/testing/zebra
+	<Neighbors>
+		swan.zoo.cs.yale.edu   no
+	</Neighbors>
+</Servent>
+
+<Servent 3>
+	ROOT: /home/accts/<student_id>/gnutella-cs433/testing/monkey
+	<Neighbors>
+		zebra.zoo.cs.yale.edu   no
+	</Neighbors>
+</Servent>
