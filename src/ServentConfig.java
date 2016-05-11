@@ -16,13 +16,11 @@ public class ServentConfig {
     Servent parent;
     public UUID identifier;
     public String dirRoot;          // directory root where this servent stores its files
-    public boolean firewall;        // if it's behind a firewall, so push needed
     public ArrayList<InetAddress> neighbors; // list of neighbors
     public ArrayList<String> filesToRequest;
     public HashMap<InetAddress, Boolean> isFirewalled;
 
     public InetAddress addr = null;             // InetAddress of this servent
-    private boolean isUltrapeer = false;
 
     public final int QUERYPORT = 7777;
     public final int HTTPPORT = 5760;
@@ -105,7 +103,6 @@ public class ServentConfig {
 
         debug.add("[Debug] " + Debug.getDebug());
         debug.add("[ROOT] " + dirRoot);
-        debug.add("[FIREWALL] " + firewall);
         debug.add("[Neighbors] ");
         debug.add("[ADDR[ " + addr.toString());
 
