@@ -68,6 +68,12 @@ class MessageQueryHandler extends MessageHandler {
     /// REGULAR QUERY HANDLING
     private void onQuery(InetAddress from, GnutellaPacket pkt) {
         Debug.DEBUG_F("Handling a query from: " + from, "onQuery");
+        UUID messageID = pkt.getMessageID();
+
+        if (parent.containsID(messageID, GnutellaPacket.QUERY)) {
+            Debug.DEBUG("Query already seen, removing request from network ", "onHitQuery");
+            return;
+        }
 
         parent.addMessageID(pkt.getMessageID(), GnutellaPacket.QUERY, from);
 
